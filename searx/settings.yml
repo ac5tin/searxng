@@ -63,7 +63,7 @@ ui:
   default_locale: ""
   theme_args:
     # default style of oscar
-    oscar_style: logicodev
+    oscar_style: logicodev-dark
     # Open result links in a new tab by default
     # results_on_new_tab: false
     # categories_order :
@@ -238,6 +238,7 @@ engines:
     engine: artic
     shortcut: arc
     timeout: 4.0
+    disabled: true
 
   - name: arxiv
     engine: arxiv
@@ -254,27 +255,33 @@ engines:
     engine: bandcamp
     shortcut: bc
     categories: music
+    disabled: true
 
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
     base_url: 'https://{language}.wikipedia.org/'
+    disabled: true
 
   - name: bing
     engine: bing
     shortcut: bi
+    disabled: true
 
   - name: bing images
     engine: bing_images
     shortcut: bii
+    disabled: true
 
   - name: bing news
     engine: bing_news
     shortcut: bin
+    disabled: true
 
   - name: bing videos
     engine: bing_videos
     shortcut: biv
+    disabled: true
 
   - name: bitbucket
     engine: xpath
@@ -298,6 +305,7 @@ engines:
   - name: btdigg
     engine: btdigg
     shortcut: bt
+    disabled: true
 
   - name: ccc-tv
     engine: xpath
@@ -321,6 +329,7 @@ engines:
     engine: ccengine
     categories: images
     shortcut: cce
+    disabled: true
 
   # - name: core.ac.uk
   #   engine: core
@@ -352,6 +361,7 @@ engines:
     engine: currency_convert
     categories: general
     shortcut: cc
+    disabled: true
 
   - name: deezer
     engine: deezer
@@ -361,12 +371,12 @@ engines:
     engine: deviantart
     shortcut: da
     timeout: 3.0
+    disabled: true
 
   - name: ddg definitions
     engine: duckduckgo_definitions
     shortcut: ddd
     weight: 2
-    disabled: true
     tests: *tests_infobox
 
   # cloudflare protected
@@ -425,17 +435,16 @@ engines:
     timeout: 3.0
     weight: 2
     tests: *tests_infobox
+    disabled: true
 
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
-    disabled: true
 
   - name: duckduckgo images
     engine: duckduckgo_images
     shortcut: ddi
     timeout: 3.0
-    disabled: true
 
   - name: etools
     engine: etools
@@ -522,6 +531,7 @@ engines:
   - name: genius
     engine: genius
     shortcut: gen
+    disabled: true
 
   - name: gigablast
     engine: gigablast
@@ -753,6 +763,7 @@ engines:
     engine: loc
     shortcut: loc
     categories: images
+    disabled: true
 
   - name: lobste.rs
     engine: xpath
@@ -973,6 +984,7 @@ engines:
     shortcut: qwi
     categories: images
     network: qwant
+    disabled: true
 
   - name: qwant news
     engine: qwant
@@ -1027,6 +1039,7 @@ engines:
   - name: sepiasearch
     engine: sepiasearch
     shortcut: sep
+    disabled: true
 
   - name: soundcloud
     engine: soundcloud
@@ -1208,6 +1221,7 @@ engines:
   - name: vimeo
     engine: vimeo
     shortcut: vm
+    disabled: true
 
   - name: wiby
     engine: json_engine
@@ -1321,6 +1335,7 @@ engines:
   - name: dictzone
     engine: dictzone
     shortcut: dc
+    disabled: true
 
   - name: mymemory translated
     engine: translated
@@ -1428,6 +1443,7 @@ engines:
   - name: mediathekviewweb
     engine: mediathekviewweb
     shortcut: mvw
+    disabled: true
 
   # - name: yacy
   #   engine: yacy
