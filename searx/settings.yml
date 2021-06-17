@@ -291,6 +291,7 @@ engines:
     engine: artic
     shortcut: arc
     timeout: 4.0
+    disabled: true
 
   - name: arxiv
     engine: arxiv
@@ -307,11 +308,13 @@ engines:
     engine: bandcamp
     shortcut: bc
     categories: music
+    disabled: true
 
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
     base_url: 'https://{language}.wikipedia.org/'
+    disabled: true
 
   - name: bing
     engine: bing
@@ -321,14 +324,17 @@ engines:
   - name: bing images
     engine: bing_images
     shortcut: bii
+    disabled: true
 
   - name: bing news
     engine: bing_news
     shortcut: bin
+    disabled: true
 
   - name: bing videos
     engine: bing_videos
     shortcut: biv
+    disabled: true
 
   - name: bitbucket
     engine: xpath
@@ -352,6 +358,7 @@ engines:
   - name: btdigg
     engine: btdigg
     shortcut: bt
+    disabled: true
 
   - name: ccc-tv
     engine: xpath
@@ -453,6 +460,7 @@ engines:
     engine: currency_convert
     categories: general
     shortcut: cc
+    disabled: true
 
   - name: deezer
     engine: deezer
@@ -463,12 +471,12 @@ engines:
     engine: deviantart
     shortcut: da
     timeout: 3.0
+    disabled: true
 
   - name: ddg definitions
     engine: duckduckgo_definitions
     shortcut: ddd
     weight: 2
-    disabled: true
     tests: *tests_infobox
 
   # cloudflare protected
@@ -523,6 +531,7 @@ engines:
     timeout: 3.0
     weight: 2
     tests: *tests_infobox
+    disabled: true
 
   - name: duckduckgo
     engine: duckduckgo
@@ -532,7 +541,6 @@ engines:
     engine: duckduckgo_images
     shortcut: ddi
     timeout: 3.0
-    disabled: true
 
   - name: tineye
     engine: tineye
@@ -619,6 +627,7 @@ engines:
   - name: genius
     engine: genius
     shortcut: gen
+    disabled: true
 
   - name: gigablast
     engine: gigablast
@@ -877,6 +886,7 @@ engines:
     engine: loc
     shortcut: loc
     categories: images
+    disabled: true
 
   - name: lobste.rs
     engine: xpath
@@ -1154,6 +1164,16 @@ engines:
     additional_tests:
       rosebud: *test_rosebud
 
+<<<<<<< HEAD
+=======
+  - name: qwant images
+    engine: qwant
+    shortcut: qwi
+    categories: images
+    network: qwant
+    disabled: true
+
+>>>>>>> ab16c9a7 (disabled unwanted engines; dark theme)
   - name: qwant news
     engine: qwant
     shortcut: qwn
@@ -1222,6 +1242,7 @@ engines:
   - name: sepiasearch
     engine: sepiasearch
     shortcut: sep
+    disabled: true
 
   - name: soundcloud
     engine: soundcloud
@@ -1417,6 +1438,7 @@ engines:
   - name: vimeo
     engine: vimeo
     shortcut: vm
+    disabled: true
 
   - name: wiby
     engine: json_engine
@@ -1551,6 +1573,7 @@ engines:
   - name: dictzone
     engine: dictzone
     shortcut: dc
+    disabled: true
 
   - name: mymemory translated
     engine: translated
