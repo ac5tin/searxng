@@ -319,7 +319,6 @@ engines:
   - name: bing
     engine: bing
     shortcut: bi
-    disabled: true
 
   - name: bing images
     engine: bing_images
@@ -486,6 +485,14 @@ engines:
   #   timeout: 6.0
   #   disabled: true
 
+<<<<<<< HEAD
+=======
+  - name: digg
+    engine: digg
+    shortcut: dg
+    disabled: true
+
+>>>>>>> 76960c09 (use bing engine instead of ddg)
   - name: docker hub
     engine: docker_hub
     shortcut: dh
@@ -536,11 +543,13 @@ engines:
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
+    disabled: true
 
   - name: duckduckgo images
     engine: duckduckgo_images
     shortcut: ddi
     timeout: 3.0
+    disabled: true
 
   - name: tineye
     engine: tineye
