@@ -266,7 +266,6 @@ engines:
   - name: bing
     engine: bing
     shortcut: bi
-    disabled: true
 
   - name: bing images
     engine: bing_images
@@ -389,6 +388,7 @@ engines:
   - name: digg
     engine: digg
     shortcut: dg
+    disabled: true
 
   - name: docker hub
     engine: docker_hub
@@ -440,11 +440,13 @@ engines:
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
+    disabled: true
 
   - name: duckduckgo images
     engine: duckduckgo_images
     shortcut: ddi
     timeout: 3.0
+    disabled: true
 
   - name: etools
     engine: etools
