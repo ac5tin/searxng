@@ -86,6 +86,8 @@ themes.* :
   all       : build all themes
   oscar     : build oscar theme
   simple    : build simple theme
+pygments.* :
+  less      : build LESS files for pygments
 EOF
 }
 
@@ -295,7 +297,7 @@ gecko.driver() {
 }
 
 node.env() {
-    if ! required_commands npm fontforge ttfautohint; then
+    if ! required_commands npm; then
         info_msg "to install build tools use::"
         info_msg "   sudo -H ./utils/searx.sh install buildhost"
         die 1 "install needed build tools first"
@@ -313,6 +315,10 @@ node.env() {
 }
 
 node.clean() {
+    if ! required_commands npm 2>/dev/null; then
+        build_msg CLEAN "npm is not installed / ignore npm dependencies"
+        return 0
+    fi
     build_msg CLEAN "locally installed npm dependencies"
     (   set -e
         npm --prefix searx/static/themes/oscar run clean
@@ -321,8 +327,17 @@ node.clean() {
     dump_return $?
 }
 
+pygments.less() {
+    build_msg PYGMENTS "searx_extra/update/update_pygments.py"
+    if ! pyenv.cmd python searx_extra/update/update_pygments.py; then
+        build_msg PYGMENTS "building LESS files for pygments failed"
+        return 1
+    fi
+    return 0
+}
+
 py.build() {
-    build_msg BUILD "[pylint] python package ${PYDIST}"
+    build_msg BUILD "python package ${PYDIST}"
     pyenv.cmd python setup.py \
               sdist -d "${PYDIST}" \
               bdist_wheel --bdist-dir "${PYBUILD}" -d "${PYDIST}"
@@ -458,6 +473,7 @@ test.clean() {
 
 themes.all() {
     (   set -e
+        pygments.less
         node.env
         themes.oscar
         themes.simple

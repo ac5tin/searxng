@@ -593,6 +593,8 @@ engines:
   - name: google
     engine: google
     shortcut: go
+    # see https://searxng.github.io/searxng/src/searx.engines.google.html#module-searx.engines.google
+    use_mobile_ui: true
     # additional_tests:
     #   android: *test_android
 
@@ -1470,7 +1472,7 @@ engines:
     timeout: 5.0
     disabled: true
 
-  - name: słownik języka polskiego
+  - name: slownik jezyka polskiego
     engine: sjp
     shortcut: sjp
     base_url: https://sjp.pwn.pl/

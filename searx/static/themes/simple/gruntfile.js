@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 module.exports = function(grunt) {
 
   const path = require('path');
@@ -7,21 +9,19 @@ module.exports = function(grunt) {
     watch: {
       scripts: {
         files: ['src/**'],
-        tasks: ['jshint', 'concat', 'uglify', 'webfont', 'less:development', 'less:production']
+        tasks: ['jshint', 'copy', 'concat', 'uglify', 'less:development', 'less:production']
       }
     },
     jshint: {
       files: ['src/js/main/*.js', 'src/js/head/*.js', '../__common__/js/*.js'],
+    },
+    stylelint: {
       options: {
-        reporterOutput: "",
-        proto: true,
-        // options here to override JSHint defaults
-        globals: {
-          browser: true,
-          jQuery: false,
-          devel: true
-        }
-      }
+        formatter: 'unix',
+      },
+      src: [
+        'src/less/**/*.less',
+      ]
     },
     copy: {
       js: {
@@ -114,10 +114,10 @@ module.exports = function(grunt) {
           'node_modules/ionicons-npm/src/ion-close-round.svg',
           'node_modules/ionicons-npm/src/android-more-vertical.svg',
           'src/fonts/magnet.svg',
-          'node_modules/ionicons-npm/src/android-close.svg',	  
+          'node_modules/ionicons-npm/src/android-close.svg',
         ],
         dest: 'fonts',
-        destLess: '.',
+        destLess: 'src/generated',
         options: {
           font: 'ion',
           hashes : true,
@@ -191,8 +191,17 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-webfont');
+  grunt.loadNpmTasks('grunt-stylelint');
 
   grunt.registerTask('test', ['jshint']);
 
-  grunt.registerTask('default', ['jshint', 'copy', 'concat', 'uglify', 'webfont', 'less:development', 'less:production']);
+  grunt.registerTask('default', [
+    'jshint',
+    'stylelint',
+    'copy',
+    'concat',
+    'uglify',
+    'less:development',
+    'less:production'
+  ]);
 };

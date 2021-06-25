@@ -51,7 +51,7 @@ shellcheck"
 BUILD_PACKAGES_debian="\
 firefox graphviz imagemagick texlive-xetex librsvg2-bin
 texlive-latex-recommended texlive-extra-utils fonts-dejavu
-latexmk fontforge ttfautohint
+latexmk
 npm"
 
 # pacman packages
@@ -63,7 +63,7 @@ shellcheck"
 
 BUILD_PACKAGES_arch="\
 firefox graphviz imagemagick texlive-bin extra/librsvg
-texlive-core texlive-latexextra ttf-dejavu fontforge ttfautohint
+texlive-core texlive-latexextra ttf-dejavu
 npm"
 
 # dnf packages
@@ -77,7 +77,7 @@ BUILD_PACKAGES_fedora="\
 firefox graphviz graphviz-gd ImageMagick librsvg2-tools
 texlive-xetex-bin texlive-collection-fontsrecommended
 texlive-collection-latex dejavu-sans-fonts dejavu-serif-fonts
-dejavu-sans-mono-fonts fontforge ttfautohint
+dejavu-sans-mono-fonts
 npm"
 
 # yum packages
@@ -552,7 +552,7 @@ test_local_searx() {
             return
         fi
     fi
-    sed -i -e "s/debug : False/debug : True/g" "$SEARX_SETTINGS_PATH"
+    sed -i -e "s/debug: false/debug: true/g" "$SEARX_SETTINGS_PATH"
     tee_stderr 0.1 <<EOF | sudo -H -u "${SERVICE_USER}" -i 2>&1 |  prefix_stdout "$_service_prefix"
 export SEARX_SETTINGS_PATH="${SEARX_SETTINGS_PATH}"
 cd ${SEARX_SRC}
@@ -560,7 +560,7 @@ timeout 10 python searx/webapp.py &
 sleep 3
 curl --location --verbose --head --insecure $SEARX_INTERNAL_HTTP
 EOF
-    sed -i -e "s/debug : True/debug : False/g" "$SEARX_SETTINGS_PATH"
+    sed -i -e "s/debug: true/debug: false/g" "$SEARX_SETTINGS_PATH"
 }
 
 install_searx_uwsgi() {
@@ -594,7 +594,7 @@ enable_image_proxy() {
     info_msg "try to enable image_proxy ..."
     tee_stderr 0.1 <<EOF | sudo -H -i 2>&1 |  prefix_stdout "$_service_prefix"
 cd ${SEARX_SRC}
-sed -i -e "s/image_proxy : False/image_proxy : True/g" "$SEARX_SETTINGS_PATH"
+sed -i -e "s/image_proxy: false/image_proxy: true/g" "$SEARX_SETTINGS_PATH"
 EOF
     uWSGI_restart "$SEARX_UWSGI_APP"
 }
@@ -603,7 +603,7 @@ disable_image_proxy() {
     info_msg "try to enable image_proxy ..."
     tee_stderr 0.1 <<EOF | sudo -H -i 2>&1 |  prefix_stdout "$_service_prefix"
 cd ${SEARX_SRC}
-sed -i -e "s/image_proxy : True/image_proxy : False/g" "$SEARX_SETTINGS_PATH"
+sed -i -e "s/image_proxy: true/image_proxy: false/g" "$SEARX_SETTINGS_PATH"
 EOF
     uWSGI_restart "$SEARX_UWSGI_APP"
 }
@@ -613,7 +613,7 @@ enable_debug() {
     info_msg "try to enable debug mode ..."
     tee_stderr 0.1 <<EOF | sudo -H -i 2>&1 |  prefix_stdout "$_service_prefix"
 cd ${SEARX_SRC}
-sed -i -e "s/debug : False/debug : True/g" "$SEARX_SETTINGS_PATH"
+sed -i -e "s/debug: false/debug: true/g" "$SEARX_SETTINGS_PATH"
 EOF
     uWSGI_restart "$SEARX_UWSGI_APP"
 }
@@ -622,7 +622,7 @@ disable_debug() {
     info_msg "try to disable debug mode ..."
     tee_stderr 0.1 <<EOF | sudo -H -i 2>&1 |  prefix_stdout "$_service_prefix"
 cd ${SEARX_SRC}
-sed -i -e "s/debug : True/debug : False/g" "$SEARX_SETTINGS_PATH"
+sed -i -e "s/debug: true/debug: false/g" "$SEARX_SETTINGS_PATH"
 EOF
     uWSGI_restart "$SEARX_UWSGI_APP"
 }
