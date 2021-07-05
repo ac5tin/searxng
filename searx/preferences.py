@@ -179,7 +179,7 @@ class SearchLanguageSetting(EnumStringSetting):
         if data not in self.choices and data != self.value:  # pylint: disable=no-member
             # hack to give some backwards compatibility with old language cookies
             data = str(data).replace('_', '-')
-            lang = data.split('-')[0]
+            lang = data.split('-', maxsplit=1)[0]
             # pylint: disable=no-member
             if data in self.choices:
                 pass
@@ -437,10 +437,10 @@ class Preferences:
 
     def parse_encoded_data(self, input_data):
         """parse (base64) preferences from request (``flask.request.form['preferences']``)"""
-        decoded_data = decompress(urlsafe_b64decode(input_data.encode()))
+        bin_data = decompress(urlsafe_b64decode(input_data))
         dict_data = {}
-        for x, y in parse_qs(decoded_data).items():
-            dict_data[x.decode()] = y[0].decode()
+        for x, y in parse_qs(bin_data.decode('ascii')).items():
+            dict_data[x] = y[0]
         self.parse_dict(dict_data)
 
     def parse_dict(self, input_data):
@@ -503,6 +503,7 @@ class Preferences:
         """Save cookie in the HTTP reponse obect
         """
         for user_setting_name, user_setting in self.key_value_settings.items():
+            # pylint: disable=unnecessary-dict-index-lookup
             if self.key_value_settings[user_setting_name].locked:
                 continue
             user_setting.save(user_setting_name, resp)

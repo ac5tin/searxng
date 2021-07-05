@@ -596,7 +596,7 @@ engines:
     engine: google
     shortcut: go
     # see https://searxng.github.io/searxng/src/searx.engines.google.html#module-searx.engines.google
-    use_mobile_ui: true
+    use_mobile_ui: false
     # additional_tests:
     #   android: *test_android
 
@@ -665,6 +665,26 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+
+  - name: gpodder
+    engine: json_engine
+    shortcut: gpod
+    timeout: 4.0
+    paging: false
+    search_url: https://gpodder.net/search.json?q={query}
+    url_query: url
+    title_query: title
+    content_query: description
+    page_size: 19
+    categories: social media, files, general
+    disabled: true
+    about:
+      website: https://gpodder.net
+      wikidata_id: Q3093354
+      official_api_documentation: https://gpoddernet.readthedocs.io/en/latest/api/
+      use_official_api: false
+      requires_api_key: false
+      results: JSON
 
   - name: geektimes
     engine: xpath
@@ -1396,6 +1416,28 @@ engines:
       require_api_key: false
       results: HTML
 
+  - name: whaleslide
+    shortcut: whale
+    engine: json_engine
+    paging: true
+    # This API Token is needed to work
+    search_url:
+      https://search.whaleslide.com/api/v1/search_v2/web/{pageno}?q={query}&api_token=f8OhUDEYKUICHDnIxEgI7Cb4uYyTBqT4nO8iueNbfTO3devS24yElGqM7nCm
+    url_query: url
+    title_query: title
+    title_html_to_text: true
+    content_query: abstract
+    content_html_to_text: true
+    categories: general
+    disabled: true
+    about:
+      website: https://whaleslide.com/
+      wikidata_id:  # No Wikidata page
+      official_api_documentation: false
+      use_official_api: false
+      require_api_key: false
+      results: JSON
+
   - name: naver
     shortcut: nvr
     engine: xpath
@@ -1474,7 +1516,24 @@ engines:
     timeout: 5.0
     disabled: true
 
-  - name: slownik jezyka polskiego
+  - name: woxikon.de synonyme
+    engine: xpath
+    shortcut: woxi
+    categories: general
+    timeout: 5.0
+    disabled: true
+    search_url: https://synonyme.woxikon.de/synonyme/{query}.php
+    url_xpath: //div[@class="upper-synonyms"]/a/@href
+    content_xpath: //div[@class="synonyms-list-group"]
+    title_xpath: //div[@class="upper-synonyms"]/a
+    about:
+      website: https://www.woxikon.de/
+      wikidata_id:  # No Wikidata ID
+      use_official_api: false
+      require_api_key: false
+      results: HTML
+
+  - name: słownik języka polskiego
     engine: sjp
     shortcut: sjp
     base_url: https://sjp.pwn.pl/
@@ -1520,6 +1579,22 @@ engines:
       use_official_api: false
       require_api_key: false
       results: html
+
+  - name: brave
+    shortcut: brave
+    engine: xpath
+    paging: false
+    search_url: https://search.brave.com/search?q={query}
+    url_xpath: //div[@class="snippet fdb"]/a/@href
+    title_xpath: //span[@class="snippet-title"]
+    content_xpath: //p[1][@class="snippet-description"]
+    categories: general
+    about:
+      website: https://brave.com/search/
+      wikidata_id: Q22906900
+      use_official_api: false
+      require_api_key: false
+      results: HTML
 
 # Doku engine lets you access to any Doku wiki instance:
 # A public one or a privete/corporate one.

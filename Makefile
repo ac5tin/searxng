@@ -43,6 +43,9 @@ clean: py.clean docs.clean node.clean test.clean
 	$(Q)find . -name '*~' -exec rm -f {} +
 	$(Q)find . -name '*.bak' -exec rm -f {} +
 
+lxc.clean:
+	$(Q)rm -rf lxc-env
+
 PHONY += search.checker search.checker.%
 search.checker: install
 	$(Q)./manage pyenv.cmd searx-checker -v
@@ -58,15 +61,16 @@ test.shell:
 		dockerfiles/docker-entrypoint.sh
 	$(Q)shellcheck -x -s bash \
 		utils/brand.env \
-		./manage \
+		$(MTOOLS) \
 		utils/lib.sh \
+		utils/lib_static.sh \
 	        utils/filtron.sh \
 	        utils/searx.sh \
 	        utils/morty.sh \
 	        utils/lxc.sh \
 	        utils/lxc-searx.env \
 	        .config.sh
-	$(Q)./manage build_msg TEST "$@ OK"
+	$(Q)$(MTOOLS) build_msg TEST "$@ OK"
 
 
 # wrap ./manage script
@@ -83,11 +87,13 @@ MANAGE += pyenv pyenv.install pyenv.uninstall
 MANAGE += pypi.upload pypi.upload.test
 MANAGE += test.yamllint test.pylint test.pep8 test.unit test.coverage test.robot test.clean
 MANAGE += themes.all themes.oscar themes.simple pygments.less
+MANAGE += static.build.commit static.build.drop static.build.restore
 
 PHONY += $(MANAGE)
 
 $(MANAGE):
 	$(Q)$(MTOOLS) $@
+
 
 # deprecated
 
