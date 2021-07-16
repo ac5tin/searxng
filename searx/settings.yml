@@ -999,21 +999,30 @@ engines:
     engine: qwant
     shortcut: qw
     categories: general
-    disabled: true
+    disabled: false
     additional_tests:
       rosebud: *test_rosebud
-
-  - name: qwant images
-    engine: qwant
-    shortcut: qwi
-    categories: images
-    network: qwant
-    disabled: true
 
   - name: qwant news
     engine: qwant
     shortcut: qwn
     categories: news
+    disabled: false
+    network: qwant
+
+  - name: qwant images
+    engine: qwant
+    shortcut: qwi
+    categories: images
+    disabled: false
+    network: qwant
+    disabled: true
+
+  - name: qwant videos
+    engine: qwant
+    shortcut: qwv
+    categories: videos
+    disabled: false
     network: qwant
 
   # - name: library
@@ -1149,7 +1158,7 @@ engines:
     engine: solidtorrents
     shortcut: solid
     timeout: 3.0
-    disabled: true
+    disabled: false
 
   # For this demo of the sqlite engine download:
   #   https://liste.mediathekview.de/filmliste-v2.db.bz2
@@ -1170,12 +1179,6 @@ engines:
   #      WHERE title LIKE :wildcard OR description LIKE :wildcard
   #      ORDER BY duration DESC
   #   disabled: false
-
-  - name: torrentz
-    engine: torrentz
-    shortcut: tor
-    url: https://torrentz2.eu/
-    timeout: 3.0
 
   # Requires Tor
   - name: torch
@@ -1559,26 +1562,6 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
-
-  - name: dogpile
-    shortcut: dp
-    engine: xpath
-    paging: true
-    page_size: 9
-    # Doesn't work without the 'sc' parameter
-    search_url: https://www.dogpile.com/serp?q={query}&page={pageno}&sc=Gp0GqqlRVflv20
-    url_xpath: //span[@class="web-bing__url"]
-    title_xpath: //a[@class="web-bing__title"]
-    content_xpath: //span[@class="web-bing__description"]
-    categories: general
-    timeout: 3.0
-    disabled: true
-    about:
-      website: https://www.dogpile.com
-      wikidata_id: Q3595363
-      use_official_api: false
-      require_api_key: false
-      results: html
 
   - name: brave
     shortcut: brave
