@@ -1,0 +1,820 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Thu Jun 23 16:27:29 2022
+
+# Variables
+
+# environment
+GDK_BACKEND = x11
+# makefile (from 'Makefile', line 5)
+MTOOLS = ./manage
+# environment
+LC_ALL = C
+# environment
+NO_AT_BRIDGE = 1
+# environment
+I3SOCK = /run/user/1000/i3/ipc-socket.1323
+# environment
+NNN_PLUG = f:finder;o:fzopen;p:mocplay;d:diffs;v:imgview
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-3f7ddc60-0c5d-4cc6-9730-bf007378d52b.sock
+# environment
+LC_NAME = en_HK.UTF-8
+# environment
+LC_NUMERIC = en_HK.UTF-8
+# environment
+VSCODE_CWD = /home/austin/temp/searxng
+# environment
+WINDOWID = 35651599
+# makefile (from 'utils/makefile.include', line 28)
+VERBOSE = 0
+# environment
+LC_ADDRESS = en_HK.UTF-8
+# default
+MAKE_COMMAND := make
+# environment
+GTK3_MODULES = xapp-gtk3-module
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# makefile (from 'utils/makefile.include', line 38)
+Q = @
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /home/austin/temp/searxng
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+MAIL = /var/spool/mail/austin
+# environment
+XDG_DATA_DIRS = /usr/local/share:/usr/share:/var/lib/snapd/desktop
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+VSCODE_LOG_STACK = true
+ 
+# automatic
+%F = $(notdir $%)
+# environment
+VSCODE_CODE_CACHE_PATH = /home/austin/.config/Code - Insiders/CachedData/3159d61ccf5150764f7742f098d76872e3114dcb
+# environment
+XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session1
+# environment
+LANG = C
+# environment
+XAUTHORITY = /home/austin/.Xauthority
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# makefile
+MAKEFLAGS = pqrR
+# makefile (from 'utils/makefile.include', line 101)
+cmd = @$(echo-cmd) $(cmd_$(1))
+# makefile
+CURDIR := /home/austin/temp/searxng
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+PAM_KWALLET5_LOGIN = /run/user/1000/kwallet5.socket
+# environment
+MFLAGS = -pqrR
+# default
+.SHELLFLAGS := -c
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+OMF_PATH = /home/austin/.local/share/omf
+# makefile (from 'utils/makefile.include', line 45)
+squote := '
+# environment
+XDG_SESSION_DESKTOP = i3
+# makefile (from 'utils/makefile.include', line 1)
+MAKEFILE_LIST := Makefile utils/makefile.include
+# automatic
+@F = $(notdir $@)
+# makefile (from 'utils/makefile.include', line 37)
+quiet = quiet_
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+VSCODE_PID = 49154
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+*F = $(notdir $*)
+# environment
+CHROME_DESKTOP = code-insiders-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
+# makefile (from 'utils/makefile.include', line 50)
+any-prereq = $(filter-out $(PHONY),$?) $(filter-out $(PHONY) $(wildcard $^),$^)
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 3
+# environment
+TERMINFO = /usr/lib/kitty/terminfo
+# makefile (from 'utils/makefile.include', line 98)
+echo-cmd = $(if $($(quiet)cmd_$(1)),echo '$(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/var/lib/snapd/snap/bin:/home/austin/bin:/home/austin/.local/bin:/home/austin/.cargo/bin:/home/austin/.yarn/bin:/home/austin/go/bin:/home/austin/.linkerd2/bin:/home/austin/bin:/home/austin/.local/bin:/home/austin/.cargo/bin:/home/austin/.yarn/bin:/home/austin/go/bin:/home/austin/.linkerd2/bin
+# makefile (from 'utils/makefile.include', line 94)
+escsq = $(subst $(squote),'\$(squote)',$1)
+# default
+MAKEFILES := 
+# environment
+LC_MONETARY = en_HK.UTF-8
+# environment
+MOTD_SHOWN = pam
+# automatic
+^F = $(notdir $^)
+# environment
+VIRTUAL_ENV_DISABLE_PROMPT = 1
+# environment
+LC_TIME = en_HK.UTF-8
+# environment
+VSCODE_LOG_NATIVE = false
+# environment
+LC_TELEPHONE = en_HK.UTF-8
+# automatic
+?F = $(notdir $?)
+# environment
+XDG_SEAT = seat0
+# environment
+XDG_CURRENT_DESKTOP = i3
+# automatic
++F = $(notdir $+)
+# environment
+XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
+# environment
+LESS = -Ri
+# environment
+DESKTOP_SESSION = i3
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = i3
+# 'override' directive
+GNUMAKEFLAGS := 
+# makefile (from 'Makefile', line 101)
+PHONY = lxc-activate lxc-purge make-help help run install uninstall clean search.checker search.checker.% test ci.test test.shell $(MANAGE) docs docker themes
+# environment
+LOGNAME = austin
+# environment
+XDG_VTNR = 1
+# makefile (from 'Makefile', line 4)
+.DEFAULT_GOAL = help
+# environment
+KITTY_WINDOW_ID = 6
+# environment
+DISPLAY = :0
+# environment
+GTK_MODULES = canberra-gtk-module
+# environment
+USER = austin
+# default
+MAKE_VERSION := 4.3
+# environment
+LC_MEASUREMENT = en_HK.UTF-8
+# environment
+KITTY_PID = 2519
+# environment
+_ = /usr/bin/make
+# environment
+LC_PAPER = en_HK.UTF-8
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+COLORTERM = truecolor
+# environment
+VISUAL = lvim
+# environment
+XDG_SESSION_CLASS = user
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/austin
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-ad5332f1-1.67.0-insider-main.sock
+# environment
+TERM = xterm-kitty
+# environment
+XDG_SESSION_ID = 2
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# makefile (from 'Makefile', line 92)
+MANAGE = buildenv weblate.translations.commit weblate.push.translations data.all data.languages data.useragents data.osm_keys_tags docs.html docs.live docs.gh-pages docs.prebuild docs.clean docker.build docker.push docker.buildx gecko.driver node.env node.clean py.build py.clean pyenv pyenv.install pyenv.uninstall pypi.upload pypi.upload.test format.python test.yamllint test.pylint test.pyright test.black test.pybabel test.unit test.coverage test.robot test.rst test.clean themes.all themes.simple themes.simple.test pygments.less static.build.commit static.build.drop static.build.restore nvm.install nvm.clean nvm.status nvm.nodejs
+# default
+SUFFIXES := 
+# environment
+VSCODE_CLI = 1
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink guile load
+# environment
+KITTY_INSTALLATION_DIR = /usr/lib/kitty
+# environment
+LC_IDENTIFICATION = en_HK.UTF-8
+# environment
+OMF_CONFIG = /home/austin/.config/omf
+# variable set hash-table stats:
+# Load=118/1024=12%, Rehash=0, Collisions=11/210=5%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 2050, inode 12862987): 40 files, no impossibilities.
+ 
+
+# 40 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+search.checker.%: install
+#  recipe to execute (from 'Makefile', line 50):
+	$(Q)./manage pyenv.cmd searx-checker -v "$(subst _, ,$(patsubst search.checker.%,%,$@))"
+
+# 1 implicit rules, 0 (0.0%) terminal.
+# Files
+
+test.pybabel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+pyenv:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+themes.simple:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+py.clean:
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: ''
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := py.clean
+# automatic
+# * := 
+# automatic
+# < := 
+# automatic
+# + := 
+# automatic
+# % := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# automatic
+# | := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=2/14=14%
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+pypi.upload:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+node.env:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+buildenv:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+nvm.clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+themes.simple.test:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docs.live:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docker: docker.build
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+themes: themes.all
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+pyenv.install:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+ci.test: test.yamllint test.black test.pyright test.pylint test.unit test.robot test.rst test.pybabel
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+format.python:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docs: docs.html
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+utils/makefile.include:
+#  Implicit rule search has been done.
+#  Last modified 2022-06-23 16:23:37.995586748
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-06-23 16:24:52.137189725
+#  File has been updated.
+#  Successfully updated.
+
+nvm.status:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+nvm.install:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.robot:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docker.buildx:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.pylint:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+uninstall:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 32):
+	$(Q)./manage pyenv.$@
+
+weblate.translations.commit:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+clean: py.clean docs.clean node.clean nvm.clean test.clean
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/5=0%
+#  recipe to execute (from 'Makefile', line 36):
+	$(Q)./manage build_msg CLEAN  "common files"
+	$(Q)find . -name '*.orig' -exec rm -f {} +
+	$(Q)find . -name '*.rej' -exec rm -f {} +
+	$(Q)find . -name '*~' -exec rm -f {} +
+	$(Q)find . -name '*.bak' -exec rm -f {} +
+
+static.build.restore:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docs.prebuild:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.coverage:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+static.build.commit:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+lxc.clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 43):
+	$(Q)rm -rf lxc-env
+
+weblate.push.translations:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.unit:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+py.build:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.yamllint:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+pygments.less:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+test.pyright:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+all: clean install
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/5=0%
+
+run: install
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 28):
+	$(Q)./manage webapp.run
+
+help:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 14):
+	@./manage --help
+	@echo '----'
+	@echo 'run            - run developer instance'
+	@echo 'install        - developer install of SearxNG into virtualenv'
+	@echo 'uninstall      - uninstall developer installation'
+	@echo 'clean          - clean up working tree'
+	@echo 'search.checker - check search engines'
+	@echo 'test           - run shell & CI tests'
+	@echo 'test.shell     - test shell scripts'
+	@echo 'ci.test        - run CI tests'
+
+docs.clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docs.html:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+make-help:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'utils/makefile.include', line 20):
+	@echo  'options:'
+	@echo  '  make V=0|1 [targets] 0 => quiet build (default), 1 => verbose build'
+	@echo  '  make V=2   [targets] 2 => give reason for rebuild of target'
+
+themes.all:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+gecko.driver:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+data.languages:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test: test.yamllint test.black test.pyright test.pylint test.unit test.robot test.rst test.shell
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+data.all:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+static.build.drop:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+lxc-purge:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'utils/makefile.include', line 9):
+	$(Q)rm -rf ./lxc-env
+
+search.checker: install
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 47):
+	$(Q)./manage pyenv.cmd searx-checker -v
+
+install:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 32):
+	$(Q)./manage pyenv.$@
+
+nvm.nodejs:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+ 
+test.black:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+pypi.upload.test:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+test.shell:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 56):
+	$(Q)shellcheck -x -s dash \
+		dockerfiles/docker-entrypoint.sh
+	$(Q)shellcheck -x -s bash \
+		utils/brand.env \
+		$(MTOOLS) \
+		utils/lib.sh \
+		utils/lib_install.sh \
+		utils/lib_nvm.sh \
+		utils/lib_static.sh \
+		utils/lib_go.sh \
+		utils/lib_redis.sh \
+		utils/filtron.sh \
+		utils/searx.sh \
+		utils/morty.sh \
+		utils/lxc.sh \
+		utils/lxc-searx.env \
+		.config.sh
+	$(Q)$(MTOOLS) build_msg TEST "$@ OK"
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+data.osm_keys_tags:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docker.build:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+.PHONY: lxc-activate lxc-purge make-help
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+test.rst:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+lxc-activate:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'utils/makefile.include', line 7):
+	@$(MAKE) -s -f "$$(dirname $(abspath $(lastword $(MAKEFILE_LIST))))/makefile.lxc" lxc-activate
+
+pyenv.uninstall:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docs.gh-pages:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+docker.push:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+data.useragents:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+node.clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 97):
+	$(Q)$(MTOOLS) $@
+
+# files hash-table stats:
+# Load=69/1024=7%, Rehash=0, Collisions=1/129=1%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 110 / storage = 1302 B / avg = 11 B
+# current buf: size = 8162 B / used = 1302 B / count = 110 / avg = 11 B
+
+# strcache performance: lookups = 215 / hit rate = 48%
+# hash-table stats:
+# Load=110/8192=1%, Rehash=0, Collisions=0/215=0%
+# Finished Make data base on Thu Jun 23 16:27:29 2022
+
+ 

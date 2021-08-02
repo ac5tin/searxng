@@ -485,14 +485,6 @@ engines:
   #   timeout: 6.0
   #   disabled: true
 
-<<<<<<< HEAD
-=======
-  - name: digg
-    engine: digg
-    shortcut: dg
-    disabled: true
-
->>>>>>> 76960c09 (use bing engine instead of ddg)
   - name: docker hub
     engine: docker_hub
     shortcut: dh
@@ -1173,21 +1165,11 @@ engines:
     additional_tests:
       rosebud: *test_rosebud
 
-<<<<<<< HEAD
-=======
-  - name: qwant images
-    engine: qwant
-    shortcut: qwi
-    categories: images
-    network: qwant
-    disabled: true
-
->>>>>>> ab16c9a7 (disabled unwanted engines; dark theme)
   - name: qwant news
     engine: qwant
     shortcut: qwn
     categories: news
-    disabled: false
+    disabled: true
     network: qwant
 
   - name: qwant images
@@ -1419,6 +1401,7 @@ engines:
   - name: unsplash
     engine: unsplash
     shortcut: us
+    disabled: true
 
   - name: yahoo
     engine: yahoo
