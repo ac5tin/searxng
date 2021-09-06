@@ -3,9 +3,10 @@
 import json
 from urllib.parse import ParseResult
 from mock import Mock
-from searx.testing import SearxTestCase
-from searx.search import Search
+
 import searx.search.processors
+from searx.search import Search
+from tests import SearxTestCase
 
 
 class ViewsTestCase(SearxTestCase):
@@ -218,6 +219,24 @@ class ViewsTestCase(SearxTestCase):
             b'<option value="zh-TW" selected="selected">',
             result.data,
             'Search language ignored browser preference.'
+        )
+
+    def test_brower_empty_locale(self):
+        result = self.app.get('/preferences', headers={'Accept-Language': ''})
+        self.assertEqual(result.status_code, 200)
+        self.assertIn(
+            b'<option value="en" selected="selected">',
+            result.data,
+            'Interface locale ignored browser preference.'
+        )
+
+    def test_locale_occitan(self):
+        result = self.app.get('/preferences?locale=oc')
+        self.assertEqual(result.status_code, 200)
+        self.assertIn(
+            b'<option value="oc" selected="selected">',
+            result.data,
+            'Interface locale ignored browser preference.'
         )
 
     def test_stats(self):

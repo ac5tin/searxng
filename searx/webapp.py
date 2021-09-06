@@ -49,13 +49,14 @@ from flask_babel import (
     format_decimal,
 )
 
-from searx import logger
-from searx import get_setting
 from searx import (
+    logger,
+    get_setting,
     settings,
     searx_debug,
 )
 from searx.settings_defaults import OUTPUT_FORMATS
+from searx.settings_loader import get_default_settings_path
 from searx.exceptions import SearxParameterException
 from searx.engines import (
     categories,
@@ -82,7 +83,7 @@ from searx.utils import (
     dict_subset,
     match_language,
 )
-from searx.version import VERSION_STRING, GIT_URL
+from searx.version import VERSION_STRING, GIT_URL, GIT_BRANCH
 from searx.query import RawTextQuery
 from searx.plugins import plugins
 from searx.plugins.oa_doi_rewrite import get_doi_resolver
@@ -91,8 +92,10 @@ from searx.preferences import (
     ValidationException,
     LANGUAGE_CODES,
 )
-from searx.answerers import answerers
-from searx.answerers import ask
+from searx.answerers import (
+    answerers,
+    ask,
+)
 from searx.metrics import (
     get_engines_stats,
     get_engine_errors,
@@ -108,9 +111,8 @@ from searx.autocomplete import search_autocomplete, backends as autocomplete_bac
 from searx.languages import language_codes as languages
 from searx.locales import LOCALE_NAMES, UI_LOCALE_CODES, RTL_LOCALES
 from searx.search import SearchWithPlugins, initialize as search_initialize
-from searx.network import stream as http_stream
+from searx.network import stream as http_stream, set_context_network_name
 from searx.search.checker import get_result as checker_get_result
-from searx.settings_loader import get_default_settings_path
 
 logger = logger.getChild('webapp')
 
@@ -223,21 +225,28 @@ exception_classname_to_text = {
     'lxml.etree.ParserError': parsing_error_text,
 }
 
-_flask_babel_get_translations = flask_babel.get_translations
-
 
 # monkey patch for flask_babel.get_translations
+_flask_babel_get_translations = flask_babel.get_translations
 def _get_translations():
     if has_request_context() and request.form.get('use-translation') == 'oc':
         babel_ext = flask_babel.current_app.extensions['babel']
         return Translations.load(next(babel_ext.translation_directories), 'oc')
     return _flask_babel_get_translations()
-
-
 flask_babel.get_translations = _get_translations
 
 
-def _get_browser_or_settings_language(req, lang_list):
+@babel.localeselector
+def get_locale():
+    locale = request.preferences.get_value('locale') if has_request_context() else 'en'
+    if locale == 'oc':
+        request.form['use-translation'] = 'oc'
+        locale = 'fr_FR'
+    logger.debug("%s uses locale `%s`", urllib.parse.quote(request.url), locale)
+    return locale
+
+
+def _get_browser_language(req, lang_list):
     for lang in req.headers.get("Accept-Language", "en").split(","):
         if ';' in lang:
             lang = lang.split(';')[0]
@@ -247,37 +256,7 @@ def _get_browser_or_settings_language(req, lang_list):
         locale = match_language(lang, lang_list, fallback=None)
         if locale is not None:
             return locale
-    return settings['search']['default_lang'] or 'en'
-
-
-@babel.localeselector
-def get_locale():
-    if 'locale' in request.form\
-       and request.form['locale'] in LOCALE_NAMES:
-        # use locale from the form
-        locale = request.form['locale']
-        locale_source = 'form'
-    elif request.preferences.get_value('locale') != '':
-        # use locale from the preferences
-        locale = request.preferences.get_value('locale')
-        locale_source = 'preferences'
-    else:
-        # use local from the browser
-        locale = _get_browser_or_settings_language(request, UI_LOCALE_CODES)
-        locale = locale.replace('-', '_')
-        locale_source = 'browser'
-
-    # see _get_translations function
-    # and https://github.com/searx/searx/pull/1863
-    if locale == 'oc':
-        request.form['use-translation'] = 'oc'
-        locale = 'fr_FR'
-
-    logger.debug(
-        "%s uses locale `%s` from %s", urllib.parse.quote(request.url), locale, locale_source
-    )
-
-    return locale
+    return 'en'
 
 
 # code-highlighter
@@ -541,11 +520,18 @@ def pre_request():
             logger.exception(e, exc_info=True)
             request.errors.append(gettext('Invalid settings'))
 
-    # init search language and locale
+    # language is defined neither in settings nor in preferences
+    # use browser headers
     if not preferences.get_value("language"):
-        preferences.parse_dict({"language": _get_browser_or_settings_language(request, LANGUAGE_CODES)})
+        language =  _get_browser_language(request, LANGUAGE_CODES)
+        preferences.parse_dict({"language": language})
+
+    # locale is defined neither in settings nor in preferences
+    # use browser headers
     if not preferences.get_value("locale"):
-        preferences.parse_dict({"locale": get_locale()})
+        locale = _get_browser_language(request, UI_LOCALE_CODES)
+        locale = locale.replace('-', '_')
+        preferences.parse_dict({"locale": locale})
 
     # request.user_plugins
     request.user_plugins = []  # pylint: disable=assigning-non-slot
@@ -1081,7 +1067,7 @@ def _is_selected_language_supported(engine, preferences):  # pylint: disable=red
 
 @app.route('/image_proxy', methods=['GET'])
 def image_proxy():
-    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-return-statements, too-many-branches
 
     url = request.args.get('url')
     if not url:
@@ -1092,17 +1078,21 @@ def image_proxy():
         return '', 400
 
     maximum_size = 5 * 1024 * 1024
-
+    forward_resp = False
+    resp = None
     try:
-        headers = dict_subset(request.headers, {'If-Modified-Since', 'If-None-Match'})
-        headers['User-Agent'] = gen_useragent()
+        request_headers = {
+            'User-Agent': gen_useragent(),
+            'Accept': 'image/webp,*/*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Sec-GPC': '1',
+            'DNT': '1',
+        }
+        set_context_network_name('image_proxy')
         stream = http_stream(
             method = 'GET',
             url = url,
-            headers = headers,
-            timeout = settings['outgoing']['request_timeout'],
-            allow_redirects = True,
-            max_redirects = 20
+            headers = request_headers
         )
         resp = next(stream)
         content_length = resp.headers.get('Content-Length')
@@ -1111,32 +1101,37 @@ def image_proxy():
             and int(content_length) > maximum_size ):
             return 'Max size', 400
 
-        if resp.status_code == 304:
-            return '', resp.status_code
-
         if resp.status_code != 200:
-            logger.debug(
-                'image-proxy: wrong response code: {0}'.format(
-                    resp.status_code))
+            logger.debug('image-proxy: wrong response code: %i', resp.status_code)
             if resp.status_code >= 400:
                 return '', resp.status_code
             return '', 400
 
-        if not resp.headers.get('content-type', '').startswith('image/'):
-            logger.debug(
-                'image-proxy: wrong content-type: {0}'.format(
-                    resp.headers.get('content-type')))
+        if not resp.headers.get('Content-Type', '').startswith('image/'):
+            logger.debug('image-proxy: wrong content-type: %s', resp.headers.get('Content-Type', ''))
             return '', 400
 
+        forward_resp = True
+    except httpx.HTTPError:
+        logger.exception('HTTP error')
+        return '', 400
+    finally:
+        if resp and not forward_resp:
+            # the code is about to return an HTTP 400 error to the browser
+            # we make sure to close the response between searxng and the HTTP server
+            try:
+                resp.close()
+            except httpx.HTTPError:
+                logger.exception('HTTP error on closing')
+
+    try:
         headers = dict_subset(
             resp.headers,
-            {'Content-Length', 'Length', 'Date', 'Last-Modified', 'Expires', 'Etag'}
+            {'Content-Type', 'Content-Encoding', 'Content-Length', 'Length'}
         )
 
-        total_length = 0
-
         def forward_chunk():
-            nonlocal total_length
+            total_length = 0
             for chunk in stream:
                 total_length += len(chunk)
                 if total_length > maximum_size:
@@ -1198,6 +1193,7 @@ def stats():
         engine_stats = engine_stats,
         engine_reliabilities = engine_reliabilities,
         selected_engine_name = selected_engine_name,
+        searx_git_branch = GIT_BRANCH,
     )
 
 
@@ -1319,6 +1315,7 @@ def config():
         'brand': {
             'CONTACT_URL': get_setting('general.contact_url'),
             'GIT_URL': GIT_URL,
+            'GIT_BRANCH': GIT_BRANCH,
             'DOCS_URL': get_setting('brand.docs_url'),
         },
         'doi_resolvers': list(settings['doi_resolvers'].keys()),

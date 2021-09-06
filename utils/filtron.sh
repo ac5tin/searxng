@@ -207,7 +207,7 @@ install_all() {
     wait_key
     echo
     if ! service_is_available "http://${FILTRON_LISTEN}" ; then
-        err_msg "Filtron does not listening on: http://${FILTRON_LISTEN}"
+        err_msg "Filtron is not listening on: http://${FILTRON_LISTEN}"
     fi
     if apache_is_installed; then
         info_msg "Apache is installed on this host."
@@ -302,6 +302,12 @@ install_rules() {
         return
     fi
 
+    if cmp --silent "${FILTRON_RULES}" "${FILTRON_RULES_TEMPLATE}"; then
+        info_msg "${FILTRON_RULES} is up to date with"
+        info_msg "${FILTRON_RULES_TEMPLATE}"
+        return
+    fi
+
     rst_para "Diff between origin's rules file (+) and current (-):"
     echo "${FILTRON_RULES}" "${FILTRON_RULES_TEMPLATE}"
     $DIFF_CMD "${FILTRON_RULES}" "${FILTRON_RULES_TEMPLATE}"
@@ -369,7 +375,7 @@ EOF
     fi
 
     if ! service_is_available "http://${FILTRON_LISTEN}" ; then
-        err_msg "Filtron does not listening on: http://${FILTRON_LISTEN}"
+        err_msg "Filtron is not listening on: http://${FILTRON_LISTEN}"
     fi
 
     if service_is_available "http://${FILTRON_TARGET}" ; then
