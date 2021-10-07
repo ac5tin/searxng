@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=invalid-name, missing-function-docstring
+# pylint: disable=invalid-name
 """Genius
 
 """
@@ -8,9 +8,6 @@
 from json import loads
 from urllib.parse import urlencode
 from datetime import datetime
-
-from searx import logger
-logger = logger.getChild('genius engine')
 
 # about
 about = {

@@ -1,3 +1,15 @@
+.column-reliability {
+  .engine-tooltip {
+    right: 12rem;
+  }
+}
+
+#tab-contentquery table td,
+#tab-contentquery table th {
+  text-align: left !important;
+  height: 3rem;
+}
+
 #main_preferences {
   form {
     width: 100%;
@@ -96,10 +108,26 @@
       width: 100%;
     }
   }
+
+  th.name {
+    .engine-tooltip {
+      margin-top: 1.8rem;
+      left: calc((100% - 85em) / 2 + 10em);
+      max-width: 40rem;
+
+      .engine-description {
+        margin-top: 0.5rem;
+      }
+    }
+  }
 }
 
-@media screen and (max-width: 75em) {
+@media screen and (max-width: 80em) {
   .preferences_back {
     clear: both;
+  }
+
+  .engine-tooltip {
+    left: 10em !important;
   }
 }

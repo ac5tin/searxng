@@ -16,7 +16,6 @@
 from urllib.parse import urlencode, unquote
 from lxml import html
 
-from searx import logger
 from searx.utils import (
     eval_xpath,
     eval_xpath_list,
@@ -36,8 +35,6 @@ from searx.engines.google import (
     ,  _fetch_supported_languages
 )
 # pylint: enable=unused-import
-
-logger = logger.getChild('google images')
 
 # about
 about = {
@@ -95,7 +92,6 @@ def request(query, params):
     """Google-Video search request"""
 
     lang_info = get_lang_info(
-        # pylint: disable=undefined-variable
         params, supported_languages, language_aliases, False
     )
     logger.debug(

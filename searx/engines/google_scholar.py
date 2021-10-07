@@ -9,12 +9,11 @@ Definitions`_.
    https://developers.google.com/custom-search/docs/xml_results#WebSearch_Query_Parameter_Definitions
 """
 
-# pylint: disable=invalid-name, missing-function-docstring
+# pylint: disable=invalid-name
 
 from urllib.parse import urlencode
 from datetime import datetime
 from lxml import html
-from searx import logger
 
 from searx.utils import (
     eval_xpath,
@@ -53,8 +52,6 @@ use_locale_domain = True
 time_range_support = True
 safesearch = False
 
-logger = logger.getChild('google scholar')
-
 def time_range_url(params):
     """Returns a URL query component for a google-Scholar time range based on
     ``params['time_range']``.  Google-Scholar does only support ranges in years.
@@ -76,7 +73,6 @@ def request(query, params):
 
     offset = (params['pageno'] - 1) * 10
     lang_info = get_lang_info(
-        # pylint: disable=undefined-variable
         params, supported_languages, language_aliases, False
     )
     logger.debug(

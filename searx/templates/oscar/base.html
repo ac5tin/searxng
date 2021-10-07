@@ -3,9 +3,9 @@
 <html lang="{{ preferences.get_value('locale') }}" xml:lang="{{ preferences.get_value('locale') }}"{% if rtl %} dir="rtl"{% endif %} class="nojs">
 <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="searx - a privacy-respecting, hackable metasearch engine" />
-    <meta name="keywords" content="searx, search, search engine, metasearch, meta search" />
-    <meta name="generator" content="searx/{{ searx_version }}">
+    <meta name="description" content="SearXNG - a privacy-respecting, hackable metasearch engine" />
+    <meta name="keywords" content="SearXNG, search, search engine, metasearch, meta search" />
+    <meta name="generator" content="SearXNG/{{ searx_version }}">
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1 , maximum-scale=2.0, user-scalable=1" />
     {% block meta %}{% endblock %}
@@ -85,6 +85,7 @@
                     {{ _('Powered by') }} <a href="{{ get_setting('brand.docs_url') }}">SearXNG</a> - {{ searx_version }} - {{ _('a privacy-respecting, hackable metasearch engine') }}<br/>
                     <a href="{{ searx_git_url }}">{{ _('Source code') }}</a> |
                     <a href="{{ get_setting('brand.issue_url') }}">{{ _('Issue tracker') }}</a> |
+                    <a href="{{ url_for('stats') }}">{{ _('Engine stats') }}</a> |
                     <a href="{{ get_setting('brand.public_instances') }}">{{ _('Public instances') }}</a>{% if get_setting('general.contact_url') %} |
                     <a href="{{ get_setting('general.contact_url') }}">{{ _('Contact instance maintainer') }}</a>{% endif %}
                 </small>
@@ -96,7 +97,7 @@
     {% if load_leaflet %}{{"    "}}<script src="{{ url_for('static', filename='js/leaflet.js') }}"></script>{{ "\n" }}{% endif %}
     {% if autocomplete %}{{"    "}}<script src="{{ url_for('static', filename='js/typeahead.bundle.min.js') }}"></script>{{ "\n" }}{% endif %}
 
-    <script src="{{ url_for('static', filename='js/searx.min.js') }}"
+    <script src="{{ url_for('static', filename='js/searxng.min.js') }}"
             data-method="{{ method or 'POST' }}"
             data-autocompleter="{% if autocomplete %}true{% else %}false{% endif %}"
             data-translations="{{ translations }}"></script>

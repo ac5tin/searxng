@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=missing-function-docstring
 """Implementation of the default settings.
 
 """
@@ -41,6 +40,17 @@ STR_TO_BOOL = {
     'on': True,
 }
 _UNDEFINED = object()
+
+# compatibility
+SEARX_ENVIRON_VARIABLES = {
+    'SEARX_DISABLE_ETC_SETTINGS': 'SEARXNG_DISABLE_ETC_SETTINGS',
+    'SEARX_SETTINGS_PATH': 'SEARXNG_SETTINGS_PATH',
+    'SEARX_DEBUG': 'SEARXNG_DEBUG',
+    'SEARX_PORT': 'SEARXNG_PORT',
+    'SEARX_BIND_ADDRESS': 'SEARXNG_BIND_ADDRESS',
+    'SEARX_SECRET': 'SEARXNG_SECRET',
+}
+
 
 
 class SettingsValue:
@@ -88,7 +98,6 @@ class SettingsValue:
         self.check_type_definition(value)
         return value
 
-
 class SettingsDirectoryValue(SettingsValue):
     """Check and update a setting value that is a directory path
     """
@@ -125,8 +134,8 @@ def apply_schema(settings, schema, path_list):
 
 SCHEMA = {
     'general': {
-        'debug': SettingsValue(bool, False, 'SEARX_DEBUG'),
-        'instance_name': SettingsValue(str, 'searxng'),
+        'debug': SettingsValue(bool, False, 'SEARXNG_DEBUG'),
+        'instance_name': SettingsValue(str, 'SearXNG'),
         'contact_url': SettingsValue((None, False, str), None),
     },
     'brand': {
@@ -145,9 +154,9 @@ SCHEMA = {
         'formats': SettingsValue(list, OUTPUT_FORMATS),
     },
     'server': {
-        'port': SettingsValue((int,str), 8888, 'SEARX_PORT'),
-        'bind_address': SettingsValue(str, '127.0.0.1', 'SEARX_BIND_ADDRESS'),
-        'secret_key': SettingsValue(str, environ_name='SEARX_SECRET'),
+        'port': SettingsValue((int,str), 8888, 'SEARXNG_PORT'),
+        'bind_address': SettingsValue(str, '127.0.0.1', 'SEARXNG_BIND_ADDRESS'),
+        'secret_key': SettingsValue(str, environ_name='SEARXNG_SECRET'),
         'base_url': SettingsValue((False, str), False),
         'image_proxy': SettingsValue(bool, False),
         'http_protocol_version': SettingsValue(('1.0', '1.1'), '1.0'),
@@ -202,5 +211,11 @@ SCHEMA = {
 }
 
 def settings_set_defaults(settings):
+    # compatibility with searx variables
+    for searx, searxng in SEARX_ENVIRON_VARIABLES.items():
+        if searx in os.environ and searxng not in os.environ:
+            os.environ[searxng] = os.environ[searx]
+            logger.warning('%s uses value from %s', searxng, searx)
+
     apply_schema(settings, SCHEMA, [])
     return settings

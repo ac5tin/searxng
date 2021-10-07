@@ -14,13 +14,12 @@
 
 """
 
-# pylint: disable=invalid-name, missing-function-docstring
+# pylint: disable=invalid-name
 
 import re
 from urllib.parse import urlencode
 from lxml import html
 
-from searx import logger
 from searx.utils import (
     eval_xpath,
     eval_xpath_list,
@@ -58,8 +57,6 @@ about = {
     "require_api_key": False,
     "results": 'HTML',
 }
-
-logger = logger.getChild('google video')
 
 # engine dependent config
 
@@ -113,7 +110,6 @@ def request(query, params):
     """Google-Video search request"""
 
     lang_info = get_lang_info(
-        # pylint: disable=undefined-variable
         params, supported_languages, language_aliases, False
     )
     logger.debug(

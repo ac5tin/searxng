@@ -2,13 +2,12 @@ mock==4.0.3
 nose2[coverage_plugin]==0.10.0
 cov-core==1.15.0
 pycodestyle==2.7.0
-pylint==2.10.2
+pylint==2.11.1
 splinter==0.15.0
-transifex-client==0.14.3
 selenium==3.141.0
 twine==3.4.2
 Pallets-Sphinx-Themes==2.0.1
-Sphinx==4.1.2
+Sphinx==4.2.0
 sphinx-issues==1.2.0
 sphinx-jinja==1.1.1
 sphinx-tabs==3.2.0
@@ -18,3 +17,4 @@ linuxdoc==20210324
 aiounittest==1.4.0
 yamllint==1.26.3
 wlc==1.12
+coloredlogs==15.0.1

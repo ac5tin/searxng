@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Installer for Searx package."""
+"""Installer for SearXNG package."""
 
 from setuptools import setup
 from setuptools import find_packages
@@ -17,7 +17,7 @@ with open('requirements-dev.txt') as f:
     dev_requirements = [ l.strip() for l in f.readlines()]
 
 setup(
-    name='searx',
+    name='searxng',
     version=VERSION_TAG,
     description="A privacy-respecting, hackable metasearch engine",
     long_description=long_description,
@@ -38,7 +38,7 @@ setup(
     author='Adam Tauber',
     author_email='asciimoo@gmail.com',
     license='GNU Affero General Public License',
-    packages=find_packages(exclude=["tests*", "searx_extra"]),
+    packages=find_packages(exclude=["tests*", "searxng_extra"]),
     zip_safe=False,
     install_requires=requirements,
     extras_require={

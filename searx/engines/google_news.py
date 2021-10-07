@@ -11,7 +11,7 @@ ignores some parameters from the common :ref:`google API`:
 
 """
 
-# pylint: disable=invalid-name, missing-function-docstring
+# pylint: disable=invalid-name
 
 import binascii
 from datetime import datetime
@@ -20,7 +20,6 @@ from urllib.parse import urlencode
 from base64 import b64decode
 from lxml import html
 
-from searx import logger
 from searx.utils import (
     eval_xpath,
     eval_xpath_list,
@@ -50,8 +49,6 @@ about = {
     "results": 'HTML',
 }
 
-logger = logger.getChild('google news')
-
 # compared to other google engines google-news has a different time range
 # support.  The time range is included in the search term.
 time_range_dict = {
@@ -78,7 +75,6 @@ def request(query, params):
     """Google-News search request"""
 
     lang_info = get_lang_info(
-        # pylint: disable=undefined-variable
         params, supported_languages, language_aliases, False
     )
     logger.debug(

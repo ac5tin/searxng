@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=missing-function-docstring
 """WebbApp
 
 """
@@ -55,6 +54,7 @@ from searx import (
     settings,
     searx_debug,
 )
+from searx.data import ENGINE_DESCRIPTIONS
 from searx.settings_defaults import OUTPUT_FORMATS
 from searx.settings_loader import get_default_settings_path
 from searx.exceptions import SearxParameterException
@@ -394,7 +394,9 @@ def image_proxify(url):
 def get_translations():
     return {
         # when there is autocompletion
-        'no_item_found': gettext('No item found')
+        'no_item_found': gettext('No item found'),
+        # /preferences: the source of the engine description (wikipedata, wikidata, website)
+        'Source': gettext('Source'),
     }
 
 
@@ -1041,9 +1043,7 @@ def preferences():
         themes = themes,
         plugins = plugins,
         doi_resolvers = settings['doi_resolvers'],
-        current_doi_resolver = get_doi_resolver(
-            request.args, request.preferences.get_value('doi_resolver')
-        ),
+        current_doi_resolver = get_doi_resolver(request.preferences),
         allowed_plugins = allowed_plugins,
         theme = get_current_theme_name(),
         preferences_url_params = request.preferences.get_as_url_params(),
@@ -1089,12 +1089,11 @@ def image_proxy():
             'DNT': '1',
         }
         set_context_network_name('image_proxy')
-        stream = http_stream(
+        resp, stream = http_stream(
             method = 'GET',
             url = url,
             headers = request_headers
         )
-        resp = next(stream)
         content_length = resp.headers.get('Content-Length')
         if (content_length
             and content_length.isdigit()
@@ -1124,23 +1123,47 @@ def image_proxy():
             except httpx.HTTPError:
                 logger.exception('HTTP error on closing')
 
+    def close_stream():
+        nonlocal resp, stream
+        try:
+            resp.close()
+            del resp
+            del stream
+        except httpx.HTTPError as e:
+            logger.debug('Exception while closing response', e)
+
     try:
         headers = dict_subset(
             resp.headers,
             {'Content-Type', 'Content-Encoding', 'Content-Length', 'Length'}
         )
-
-        def forward_chunk():
-            total_length = 0
-            for chunk in stream:
-                total_length += len(chunk)
-                if total_length > maximum_size:
-                    break
-                yield chunk
-
-        return Response(forward_chunk(), mimetype=resp.headers['Content-Type'], headers=headers)
+        response = Response(
+            stream,
+            mimetype=resp.headers['Content-Type'],
+            headers=headers,
+            direct_passthrough=True)
+        response.call_on_close(close_stream)
+        return response
     except httpx.HTTPError:
+        close_stream()
         return '', 400
+
+
+@app.route('/engine_descriptions.json', methods=['GET'])
+def engine_descriptions():
+    locale = get_locale().split('_')[0]
+    result = ENGINE_DESCRIPTIONS['en'].copy()
+    if locale != 'en':
+        for engine, description in ENGINE_DESCRIPTIONS.get(locale, {}).items():
+            result[engine] = description
+    for engine, description in result.items():
+        if len(description) ==2 and description[1] == 'ref':
+            ref_engine, ref_lang = description[0].split(':')
+            description = ENGINE_DESCRIPTIONS[ref_lang][ref_engine]
+        if isinstance(description, str):
+            description = [ description, 'wikipedia' ]
+        result[engine] = description
+    return jsonify(result)
 
 
 @app.route('/stats', methods=['GET'])

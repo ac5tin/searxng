@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=missing-function-docstring
 """The XPath engine is a *generic* engine with which it is possible to configure
 engines in the settings.
 
@@ -23,9 +22,6 @@ from urllib.parse import urlencode
 
 from lxml import html
 from searx.utils import extract_text, extract_url, eval_xpath, eval_xpath_list
-from searx import logger
-
-logger = logger.getChild('XPath engine')
 
 search_url = None
 """
@@ -177,7 +173,6 @@ def request(query, params):
 
     params['url'] = search_url.format(**fargs)
     params['soft_max_redirects'] = soft_max_redirects
-    logger.debug("query_url --> %s", params['url'])
 
     return params
 
@@ -187,7 +182,7 @@ def response(resp):
     '''
     results = []
     dom = html.fromstring(resp.text)
-    is_onion = 'onions' in categories  # pylint: disable=undefined-variable
+    is_onion = 'onions' in categories
 
     if results_xpath:
         for result in eval_xpath_list(dom, results_xpath):

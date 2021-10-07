@@ -84,7 +84,7 @@ class ViewsTestCase(SearxTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertIn(b'<div class="text-hide center-block" id="main-logo">'
                       + b'<img class="center-block img-responsive" src="/static/themes/oscar/img/logo_searx_a.png"'
-                      + b' alt="searx logo" />searx</div>', result.data)
+                      + b' alt="searx logo" />SearXNG</div>', result.data)
 
     def test_index_html_post(self):
         result = self.app.post('/', data={'q': 'test'})
@@ -99,7 +99,7 @@ class ViewsTestCase(SearxTestCase):
     def test_search_empty_html(self):
         result = self.app.post('/search', data={'q': ''})
         self.assertEqual(result.status_code, 200)
-        self.assertIn(b'<span class="instance pull-left"><a href="/">searxng</a></span>', result.data)
+        self.assertIn(b'<span class="instance pull-left"><a href="/">SearXNG</a></span>', result.data)
 
     def test_search_empty_json(self):
         result = self.app.post('/search', data={'q': '', 'format': 'json'})

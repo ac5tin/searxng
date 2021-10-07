@@ -4,13 +4,8 @@
 
 """
 
-# pylint: disable=missing-function-docstring
-
 from json import loads
 from urllib.parse import urlencode
-from searx import logger
-
-logger = logger.getChild('solidtor engine')
 
 about = {
     "website": 'https://www.solidtorrents.net/',

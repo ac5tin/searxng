@@ -369,9 +369,22 @@
 .bar100 {
   width: 100%;
 }
+.osm-map-box {
+  height: 300px;
+  width: 100%;
+  margin: 10px 0;
+}
+.default-image-style {
+  width: auto;
+  max-height: 60px;
+  min-height: 60px;
+}
+.col-stat {
+  width: 10rem;
+}
 /*
-   this file is generated automatically by searx_extra/update/update_pygments.py
-   using pygments version 2.9.0
+   this file is generated automatically by searxng_extra/update/update_pygments.py
+   using pygments version 2.10.0
 */
 .code-highlight .linenos {
   -webkit-touch-callout: none;
@@ -719,7 +732,7 @@
   color: #D19A66;
 }
 /* Literal.Number.Integer.Long */
-.searx-navbar {
+.searxng-navbar {
   background: #29314D;
   height: 2.3rem;
   font-size: 1.3rem;
@@ -728,13 +741,13 @@
   font-weight: bold;
   margin-bottom: 0.8rem;
 }
-.searx-navbar a,
-.searx-navbar a:hover {
+.searxng-navbar a,
+.searxng-navbar a:hover {
   margin-right: 2rem;
   color: white;
   text-decoration: none;
 }
-.searx-navbar .instance a {
+.searxng-navbar .instance a {
   color: #01D7D4;
   margin-left: 2rem;
 }
@@ -1323,6 +1336,7 @@ input.cursor-text {
   font-size: 14px;
   font-weight: normal;
   z-index: 1000000;
+  max-width: 40rem;
 }
 td:hover .engine-tooltip,
 th:hover .engine-tooltip,
@@ -1393,3 +1407,17 @@ th:hover .engine-tooltip,
   padding: 0.4rem 0;
   width: 1px;
 }
+/* Safari 9+ 
+   Conditional/Hack CSS from https://browserstrangeness.github.io/css_hacks.html
+*/
+@supports (-webkit-marquee-repetition:infinite) and (object-fit:fill) {
+    .twitter-typeahead .tt-input:focus {
+        z-index: 2;
+    }
+
+    .input-group-btn:last-child > .btn,
+    .input-group-btn:last-child > .btn-group {
+        margin-left: inherit !important;
+    }
+}
+

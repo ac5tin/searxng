@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=missing-function-docstring
 """This module implements the engine loader.
 
 Load and initialize the ``engines``, see :py:func:`load_engines` and register
@@ -111,7 +110,24 @@ def load_engine(engine_data):
     if is_missing_required_attributes(engine):
         return None
 
+    set_loggers(engine, engine_name)
+
     return engine
+
+
+def set_loggers(engine, engine_name):
+    # set the logger for engine
+    engine.logger = logger.getChild(engine_name)
+    # the engine may have load some other engines
+    # may sure the logger is initialized
+    for module_name, module in sys.modules.items():
+        if (
+            module_name.startswith("searx.engines")
+            and module_name != "searx.engines.__init__"
+            and not hasattr(module, "logger")
+        ):
+            module_engine_name = module_name.split(".")[-1]
+            module.logger = logger.getChild(module_engine_name)
 
 
 def update_engine_attributes(engine, engine_data):

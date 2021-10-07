@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
-# pylint: disable=missing-module-docstring, missing-function-docstring, global-statement
+# pylint: disable=missing-module-docstring, global-statement
 
 import asyncio
 import threading
@@ -9,6 +9,7 @@ from types import MethodType
 from timeit import default_timer
 
 import httpx
+import anyio
 import h2.exceptions
 
 from .network import get_network, initialize
@@ -43,24 +44,20 @@ THREADLOCAL = threading.local()
 """Thread-local data is data for thread specific values."""
 
 def reset_time_for_thread():
-    global THREADLOCAL
     THREADLOCAL.total_time = 0
 
 
 def get_time_for_thread():
     """returns thread's total time or None"""
-    global THREADLOCAL
     return THREADLOCAL.__dict__.get('total_time')
 
 
 def set_timeout_for_thread(timeout, start_time=None):
-    global THREADLOCAL
     THREADLOCAL.timeout = timeout
     THREADLOCAL.start_time = start_time
 
 
 def set_context_network_name(network_name):
-    global THREADLOCAL
     THREADLOCAL.network = get_network(network_name)
 
 
@@ -69,13 +66,11 @@ def get_context_network():
 
     If unset, return value from :py:obj:`get_network`.
     """
-    global THREADLOCAL
     return THREADLOCAL.__dict__.get('network') or get_network()
 
 
 def request(method, url, **kwargs):
     """same as requests/requests/api.py request(...)"""
-    global THREADLOCAL
     time_before_request = default_timer()
 
     # timeout (httpx)
@@ -172,13 +167,39 @@ async def stream_chunk_to_queue(network, queue, method, url, **kwargs):
             async for chunk in response.aiter_raw(65536):
                 if len(chunk) > 0:
                     queue.put(chunk)
-    except httpx.ResponseClosed:
-        # the response was closed
+    except (httpx.StreamClosed, anyio.ClosedResourceError):
+        # the response was queued before the exception.
+        # the exception was raised on aiter_raw.
+        # we do nothing here: in the finally block, None will be queued
+        # so stream(method, url, **kwargs) generator can stop
         pass
-    except (httpx.HTTPError, OSError, h2.exceptions.ProtocolError) as e:
+    except Exception as e:  # pylint: disable=broad-except
+        # broad except to avoid this scenario:
+        # exception in network.stream(method, url, **kwargs)
+        # -> the exception is not catch here
+        # -> queue None (in finally)
+        # -> the function below steam(method, url, **kwargs) has nothing to return
         queue.put(e)
     finally:
         queue.put(None)
+
+
+def _stream_generator(method, url, **kwargs):
+    queue = SimpleQueue()
+    network = get_context_network()
+    future = asyncio.run_coroutine_threadsafe(
+        stream_chunk_to_queue(network, queue, method, url, **kwargs),
+        get_loop()
+    )
+
+    # yield chunks
+    obj_or_exception = queue.get()
+    while obj_or_exception is not None:
+        if isinstance(obj_or_exception, Exception):
+            raise obj_or_exception
+        yield obj_or_exception
+        obj_or_exception = queue.get()
+    future.result()
 
 
 def _close_response_method(self):
@@ -186,38 +207,33 @@ def _close_response_method(self):
         self.aclose(),
         get_loop()
     )
+    # reach the end of _self.generator ( _stream_generator ) to an avoid memory leak.
+    # it makes sure that :
+    # * the httpx response is closed (see the stream_chunk_to_queue function)
+    # * to call future.result() in _stream_generator
+    for _ in self._generator:  # pylint: disable=protected-access
+        continue
 
 
 def stream(method, url, **kwargs):
     """Replace httpx.stream.
 
     Usage:
-    stream = poolrequests.stream(...)
-    response = next(stream)
+    response, stream = poolrequests.stream(...)
     for chunk in stream:
         ...
 
     httpx.Client.stream requires to write the httpx.HTTPTransport version of the
     the httpx.AsyncHTTPTransport declared above.
     """
-    queue = SimpleQueue()
-    future = asyncio.run_coroutine_threadsafe(
-        stream_chunk_to_queue(get_network(), queue, method, url, **kwargs),
-        get_loop()
-    )
+    generator = _stream_generator(method, url, **kwargs)
 
     # yield response
-    response = queue.get()
+    response = next(generator)  # pylint: disable=stop-iteration-return
     if isinstance(response, Exception):
         raise response
-    response.close = MethodType(_close_response_method, response)
-    yield response
 
-    # yield chunks
-    chunk_or_exception = queue.get()
-    while chunk_or_exception is not None:
-        if isinstance(chunk_or_exception, Exception):
-            raise chunk_or_exception
-        yield chunk_or_exception
-        chunk_or_exception = queue.get()
-    future.result()
+    response._generator = generator  # pylint: disable=protected-access
+    response.close = MethodType(_close_response_method, response)
+
+    return response, generator
