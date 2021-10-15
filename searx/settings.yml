@@ -36,7 +36,7 @@ server:
   bind_address: "127.0.0.1"
   base_url: false  # Possible values: false or "https://example.org/location".
 
-  # If your instance owns a /etc/searx/settings.yml file, then set the following
+  # If your instance owns a /etc/searxng/settings.yml file, then set the following
   # values there.
 
   secret_key: "ultrasecretkey"  # change this!
@@ -613,6 +613,17 @@ engines:
     # additional_tests:
     #   android: *test_android
 
+  # - name: google italian
+  #   engine: google
+  #   shortcut: goit
+  #   use_mobile_ui: false
+  #   language: it
+
+  # - name: google mobile ui
+  #   engine: google
+  #   shortcut: gomui
+  #   use_mobile_ui: true
+
   - name: google images
     engine: google_images
     shortcut: goi
@@ -801,6 +812,17 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+
+  - name: z-library
+    engine: zlibrary
+    shortcut: zlib
+    categories: files
+    timeout: 3.0
+    # choose base_url, otherwise engine will do it at initialization time
+    # base_url: https://b-ok.cc
+    # base_url: https://de1lib.org
+    # base_url: https://booksc.eu   # does not have cover preview
+    # base_url: https://booksc.org  # does not have cover preview
 
   - name: library of congress
     engine: loc
@@ -1274,6 +1296,21 @@ engines:
     categories: onions
     enable_http: true
     shortcut: tch
+
+  # torznab engine lets you query any torznab compatible indexer.  Using this
+  # engine in combination with Jackett (https://github.com/Jackett/Jackett)
+  # opens the possibility to query a lot of public and private indexers directly
+  # from SearXNG.
+  # - name: torznab
+  #   engine: torznab
+  #   shortcut: trz
+  #   base_url: http://localhost:9117/api/v2.0/indexers/all/results/torznab
+  #   enable_http: true  # if using localhost
+  #   api_key: xxxxxxxxxxxxxxx
+  #   # https://github.com/Jackett/Jackett/wiki/Jackett-Categories
+  #   torznab_categories:  # optional
+  #     - 2000
+  #     - 5000
 
   # maybe in a fun category
   #  - name: uncyclopedia

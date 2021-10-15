@@ -85,14 +85,14 @@ def request(query, params):
 
     # add language tag
     if params['language'] == 'all':
-        params['url'] += '&locale=en_us'
+        params['url'] += '&locale=en_US'
     else:
         language = match_language(
             params['language'],
             supported_languages,
             language_aliases,
         )
-        params['url'] += '&locale=' + language.replace('-', '_').lower()
+        params['url'] += '&locale=' + language.replace('-', '_')
 
     params['raise_for_httperror'] = False
     return params
@@ -138,6 +138,9 @@ def response(resp):
     for row in mainline:
 
         mainline_type = row.get('type', 'web')
+        if mainline_type != keyword:
+            continue
+
         if mainline_type == 'ads':
             # ignore adds
             continue
