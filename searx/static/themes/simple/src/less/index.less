@@ -1,27 +1,34 @@
 #main_index {
-  margin-top: 16em;
+  margin-top: 26vh;
+
+  #linkto_preferences {
+    right: 1.8rem;
+  }
 }
 
 .index {
   text-align: center;
 
   .title {
-    background: url('../img/searx.png') no-repeat;
-    width: 100%;
-    min-height: 80px;
+    background: url('../img/searxng.png') no-repeat;
+    min-height: 4rem;
+    margin: 4rem auto;
     background-position: center;
+    background-size: contain;
   }
 
   h1 {
-    font-size: 5em;
+    font-size: 4em;
     visibility: hidden;
   }
 
-  #search {
+  #search,
+  #search_header {
     margin: 0 auto;
     background: inherit;
     border: inherit;
     padding: 0;
+    display: block;
   }
 
   .search_filters {
@@ -35,7 +42,7 @@
   }
 }
 
-@media screen and (max-width: 80em) {
+@media screen and (max-width: @tablet) {
   div.title {
     h1 {
       font-size: 1em;
@@ -47,7 +54,7 @@
   }
 }
 
-@media screen and (max-width: 50em) {
+@media screen and (max-width: @phone) {
   #main_index {
     margin-top: 0;
   }

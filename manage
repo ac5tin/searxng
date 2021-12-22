@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8; mode: sh indent-tabs-mode: nil -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# shellcheck disable=SC2031
+
+# shellcheck disable=SC2034
+main_cmd="$(basename "$0")"
 
 # shellcheck source=utils/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/utils/lib.sh"
 
+# shellcheck source=utils/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_nvm.sh"
+
 # shellcheck source=utils/lib_static.sh
 source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_static.sh"
+
+# shellcheck source=utils/lib_go.sh
+source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_go.sh"
 
 # config
 
 PYOBJECTS="searx"
 PY_SETUP_EXTRAS='[test]'
 GECKODRIVER_VERSION="v0.28.0"
+export NODE_MINIMUM_VERSION="16.13.0"
 # SPHINXOPTS=
 
 pylint.FILES() {
@@ -33,7 +42,7 @@ while IFS= read -r line; do
    YAMLLINT_FILES+=("$line")
 done <<< "$(git ls-files './tests/*.yml' './searx/*.yml' './utils/templates/etc/searxng/*.yml')"
 
-PYLINT_SEARX_DISABLE_OPTION="\
+PYLINT_SEARXNG_DISABLE_OPTION="\
 I,C,R,\
 W0105,W0212,W0511,W0603,W0613,W0621,W0702,W0703,W1401,\
 E1136"
@@ -41,6 +50,7 @@ PYLINT_ADDITIONAL_BUILTINS_FOR_ENGINES="supported_languages,language_aliases,log
 PYLINT_OPTIONS="-m pylint -j 0 --rcfile .pylintrc"
 
 help() {
+    nvm.help
     cat <<EOF
 buildenv:
   rebuild ./utils/brand.env
@@ -63,20 +73,24 @@ docker.:
 gecko.driver:
   download & install geckodriver if not already installed (required for
   robot_tests)
+EOF
+    nvm.help
+    cat <<EOF
 node.:
   env       : download & install npm dependencies locally
-  clean     : drop npm installations
+  clean     : drop locally npm installations
 py.:
   build     : Build python packages at ./${PYDIST}
   clean     : delete virtualenv and intermediate py files
 pyenv.:
-  install   : developer install of searx into virtualenv
+  install   : developer install of SearXNG into virtualenv
   uninstall : uninstall developer installation
   cmd ...   : run command ... in virtualenv
   OK        : test if virtualenv is OK
 pypi.upload:
   Upload python packages to PyPi (to test use pypi.upload.test)
 test.:
+  yamllint  : lint YAML files (YAMLLINT_FILES)
   pylint    : lint PYLINT_FILES, searx/engines, searx & tests
   pep8      : pycodestyle (pep8) for all files except PYLINT_FILES
   unit      : run unit tests
@@ -90,6 +104,7 @@ themes.:
 pygments.:
   less      : build LESS files for pygments
 EOF
+    go.help
     static_help
 }
 
@@ -214,7 +229,7 @@ weblate.translations.commit() {
                 -d "searx/translations"
         # git add/commit (no push)
         commit_body=$(cd "${TRANSLATIONS_WORKTREE}"; git log --pretty=format:'%h - %as - %aN <%ae>' "${existing_commit_hash}..HEAD")
-        commit_message=$(echo -e "[translations] update\n${commit_body}")
+        commit_message=$(echo -e "[translations] update from Weblate\n\n${commit_body}")
         git add searx/translations
         git commit -m "${commit_message}"
     )
@@ -390,10 +405,10 @@ docker.buildx() {
 docker.build() {
     pyenv.install
 
-    local SEARX_GIT_VERSION
+    local SEARXNG_GIT_VERSION
     local VERSION_GITCOMMIT
     local GITHUB_USER
-    local SEARX_IMAGE_NAME
+    local SEARXNG_IMAGE_NAME
     local BUILD
 
     build_msg DOCKER build
@@ -427,35 +442,35 @@ docker.build() {
 
         # define the docker image name
         GITHUB_USER=$(echo "${GIT_URL}" | sed 's/.*github\.com\/\([^\/]*\).*/\1/')
-        SEARX_IMAGE_NAME="${SEARX_IMAGE_NAME:-${GITHUB_USER:-searxng}/searxng}"
+        SEARXNG_IMAGE_NAME="${SEARXNG_IMAGE_NAME:-${GITHUB_USER:-searxng}/searxng}"
 
         BUILD="build"
         if [ "$1" = "buildx" ]; then
             # buildx includes the push option
-            CACHE_TAG="${SEARX_IMAGE_NAME}:latest-build-cache"
+            CACHE_TAG="${SEARXNG_IMAGE_NAME}:latest-build-cache"
             BUILD="buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --push --cache-from=type=registry,ref=$CACHE_TAG --cache-to=type=registry,ref=$CACHE_TAG,mode=max"
             shift
         fi
         build_msg DOCKER "Build command: ${BUILD}"
 
         # build Docker image
-        build_msg DOCKER "Building image ${SEARX_IMAGE_NAME}:${SEARX_GIT_VERSION}"
+        build_msg DOCKER "Building image ${SEARXNG_IMAGE_NAME}:${SEARXNG_GIT_VERSION}"
         # shellcheck disable=SC2086
         docker $BUILD \
          --build-arg BASE_IMAGE="${DEPENDENCIES_IMAGE_NAME}" \
          --build-arg GIT_URL="${GIT_URL}" \
-         --build-arg SEARX_GIT_VERSION="${VERSION_STRING}" \
+         --build-arg SEARXNG_GIT_VERSION="${VERSION_STRING}" \
          --build-arg VERSION_GITCOMMIT="${VERSION_GITCOMMIT}" \
          --build-arg LABEL_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
          --build-arg LABEL_VCS_REF="$(git rev-parse HEAD)" \
          --build-arg LABEL_VCS_URL="${GIT_URL}" \
          --build-arg TIMESTAMP_SETTINGS="$(git log -1 --format="%cd" --date=unix -- searx/settings.yml)" \
          --build-arg TIMESTAMP_UWSGI="$(git log -1 --format="%cd" --date=unix -- dockerfiles/uwsgi.ini)" \
-         -t "${SEARX_IMAGE_NAME}:latest" -t "${SEARX_IMAGE_NAME}:${VERSION_STRING}" .
+         -t "${SEARXNG_IMAGE_NAME}:latest" -t "${SEARXNG_IMAGE_NAME}:${VERSION_STRING}" .
 
         if [ "$1" = "push" ]; then
-	        docker push "${SEARX_IMAGE_NAME}:latest"
-	        docker push "${SEARX_IMAGE_NAME}:${SEARX_GIT_VERSION}"
+	        docker push "${SEARXNG_IMAGE_NAME}:latest"
+	        docker push "${SEARXNG_IMAGE_NAME}:${SEARXNG_GIT_VERSION}"
 	    fi
     )
     dump_return $?
@@ -498,10 +513,9 @@ gecko.driver() {
 }
 
 node.env() {
-    if ! required_commands npm; then
-        info_msg "to install build tools use::"
-        info_msg "   sudo -H ./utils/searx.sh install buildhost"
-        die 1 "install needed build tools first"
+    if ! nvm.min_node "${NODE_MINIMUM_VERSION}"; then
+        info_msg "install Node.js by NVM"
+        nvm.nodejs
     fi
 
     (   set -e
@@ -520,7 +534,7 @@ node.clean() {
         build_msg CLEAN "npm is not installed / ignore npm dependencies"
         return 0
     fi
-    build_msg CLEAN "locally installed npm dependencies"
+    build_msg CLEAN "themes -- locally installed npm dependencies"
     (   set -e
         npm --prefix searx/static/themes/oscar run clean
         npm --prefix searx/static/themes/simple run clean
@@ -620,13 +634,13 @@ test.pylint() {
 
         build_msg TEST "[pylint] searx/engines"
         python ${PYLINT_OPTIONS} ${PYLINT_VERBOSE} \
-            --disable="${PYLINT_SEARX_DISABLE_OPTION}" \
+            --disable="${PYLINT_SEARXNG_DISABLE_OPTION}" \
             --additional-builtins="${PYLINT_ADDITIONAL_BUILTINS_FOR_ENGINES}" \
             searx/engines
 
         build_msg TEST "[pylint] searx tests"
         python ${PYLINT_OPTIONS} ${PYLINT_VERBOSE} \
-            --disable="${PYLINT_SEARX_DISABLE_OPTION}" \
+            --disable="${PYLINT_SEARXNG_DISABLE_OPTION}" \
 	    --ignore=searx/engines \
 	    searx tests
     )
@@ -692,8 +706,22 @@ themes.oscar() {
 }
 
 themes.simple() {
-    build_msg GRUNT "theme: simple"
-    npm --prefix searx/static/themes/simple run build
+    local static="searx/static/themes/simple"
+    (   set -e
+        build_msg GRUNT "theme: simple"
+        npm --prefix searx/static/themes/simple run build
+    )
+    dump_return $?
+}
+
+themes.simple.test() {
+    build_msg TEST "theme: simple"
+    if ! nvm.min_node "${NODE_MINIMUM_VERSION}"; then
+        info_msg "install Node.js by NVM"
+        nvm.nodejs
+    fi
+    npm --prefix searx/static/themes/simple install
+    npm --prefix searx/static/themes/simple run test
     dump_return $?
 }
 

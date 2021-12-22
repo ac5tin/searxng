@@ -3,6 +3,8 @@
 
 # shellcheck source=utils/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# shellcheck source=utils/lib_go.sh
+source "${REPO_ROOT}/utils/lib_go.sh"
 # shellcheck source=utils/lib_install.sh
 source "${REPO_ROOT}/utils/lib_install.sh"
 
@@ -28,8 +30,7 @@ SERVICE_GROUP="${SERVICE_USER}"
 SERVICE_ENV_DEBUG=false
 
 GO_ENV="${SERVICE_HOME}/.go_env"
-GO_PKG_URL="https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz"
-GO_TAR=$(basename "$GO_PKG_URL")
+GO_VERSION="go1.17.2"
 
 # shellcheck disable=SC2034
 CONFIG_FILES=()
@@ -47,7 +48,8 @@ usage() {
     cat <<EOF
 usage::
   $(basename "$0") shell
-  $(basename "$0") install    [all|user]
+  $(basename "$0") install    [all|check|user]
+  $(basename "$0") reinstall  all
   $(basename "$0") update     [morty]
   $(basename "$0") remove     [all]
   $(basename "$0") activate   [service]
@@ -61,8 +63,12 @@ usage::
 shell
   start interactive shell from user ${SERVICE_USER}
 install / remove
-  all:        complete setup of morty service
-  user:       add/remove service user '$SERVICE_USER' ($SERVICE_HOME)
+  :all:        complete setup of morty service
+  :user:       add/remove service user '$SERVICE_USER' ($SERVICE_HOME)
+install
+  :check:      check the morty installation
+reinstall:
+  :all:        runs 'install/remove all'
 update morty
   Update morty installation ($SERVICE_HOME)
 activate service
@@ -142,11 +148,25 @@ main() {
                     ;;
                 *) usage "$_usage"; exit 42;;
             esac ;;
+        reinstall)
+            rst_title "re-install $SERVICE_NAME" part
+            sudo_or_exit
+            case $2 in
+                all)
+                    remove_all
+                    install_all
+                    ;;
+                *) usage "$_usage"; exit 42;;
+            esac ;;
         install)
             rst_title "$SERVICE_NAME" part
             sudo_or_exit
             case $2 in
                 all) install_all ;;
+                check)
+                    rst_title "Check morty installation" part
+                    install_check
+                    ;;
                 user) assert_user ;;
                 *) usage "$_usage"; exit 42;;
             esac ;;
@@ -214,7 +234,7 @@ install_all() {
     rst_title "Install $SERVICE_NAME (service)"
     assert_user
     wait_key
-    install_go "${GO_PKG_URL}" "${GO_TAR}" "${SERVICE_USER}"
+    go.golang "${GO_VERSION}" "${SERVICE_USER}"
     wait_key
     install_morty
     wait_key
@@ -246,101 +266,7 @@ install_all() {
 
 }
 
-remove_all() {
-    rst_title "De-Install $SERVICE_NAME (service)"
-
-    rst_para "\
-It goes without saying that this script can only be used to remove
-installations that were installed with this script."
-
-    if systemd_remove_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"; then
-        drop_service_account "${SERVICE_USER}"
-    fi
-}
-
-assert_user() {
-    rst_title "user $SERVICE_USER" section
-    echo
-    tee_stderr 1 <<EOF | bash | prefix_stdout
-useradd --shell /bin/bash --system \
- --home-dir "$SERVICE_HOME" \
- --comment 'Web content sanitizer proxy' $SERVICE_USER
-mkdir "$SERVICE_HOME"
-chown -R "$SERVICE_GROUP:$SERVICE_GROUP" "$SERVICE_HOME"
-groups $SERVICE_USER
-EOF
-    SERVICE_HOME="$(sudo -i -u "$SERVICE_USER" echo \$HOME)"
-    export SERVICE_HOME
-    echo "export SERVICE_HOME=$SERVICE_HOME"
-
-    cat > "$GO_ENV" <<EOF
-export GOPATH=\$HOME/go-apps
-export PATH=\$PATH:\$HOME/local/go/bin:\$GOPATH/bin
-EOF
-    echo "Environment $GO_ENV has been setup."
-
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER"
-grep -qFs -- 'source $GO_ENV' ~/.profile || echo 'source $GO_ENV' >> ~/.profile
-EOF
-}
-
-morty_is_installed() {
-    [[ -f $SERVICE_HOME/go-apps/bin/morty ]]
-}
-
-_svcpr="  ${_Yellow}|${SERVICE_USER}|${_creset} "
-
-install_morty() {
-    rst_title "Install morty in user's ~/go-apps" section
-    echo
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-go get -v -u github.com/asciimoo/morty
-EOF
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-cd \$GOPATH/src/github.com/asciimoo/morty
-go test
-go test -benchmem -bench .
-EOF
-}
-
-update_morty() {
-    rst_title "Update morty" section
-    echo
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-go get -v -u github.com/asciimoo/morty
-EOF
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-cd \$GOPATH/src/github.com/asciimoo/morty
-go test
-go test -benchmem -bench .
-EOF
-}
-
-set_service_env_debug() {
-
-    # usage:  set_service_env_debug [false|true]
-
-    # shellcheck disable=SC2034
-    local SERVICE_ENV_DEBUG="${1:-false}"
-    if systemd_remove_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"; then
-        systemd_install_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"
-    fi
-}
-
-inspect_service() {
-
-    rst_title "service status & log"
-
-    cat <<EOF
-
-sourced ${DOT_CONFIG} :
-  SERVICE_USER        : ${SERVICE_USER}
-  SERVICE_HOME        : ${SERVICE_HOME}
-  PUBLIC_URL_MORTY:   : ${PUBLIC_URL_MORTY}
-  MORTY_LISTEN:       : ${MORTY_LISTEN}
-
-EOF
-    install_log_searx_instance
+install_check() {
 
     if service_account_is_available "$SERVICE_USER"; then
         info_msg "service account $SERVICE_USER available."
@@ -370,6 +296,95 @@ EOF
             warn_msg "Check if public name is correct and routed or use the public IP from above."
         fi
     fi
+
+    if [[ "${GO_VERSION}" > "$(go_version)" ]]; then
+        warn_msg "golang ($(go_version)) needs to be $GO_VERSION at least"
+        warn_msg "you need to reinstall $SERVICE_USER --> $0 reinstall all"
+    else
+        info_msg "golang $(go_version) is installed (min needed is: $GO_VERSION)"
+    fi
+}
+
+go_version(){
+    go.version "${SERVICE_USER}"
+}
+
+remove_all() {
+    rst_title "De-Install $SERVICE_NAME (service)"
+
+    rst_para "\
+It goes without saying that this script can only be used to remove
+installations that were installed with this script."
+
+    if systemd_remove_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"; then
+        drop_service_account "${SERVICE_USER}"
+    fi
+}
+
+assert_user() {
+    rst_title "user $SERVICE_USER" section
+    echo
+    tee_stderr 1 <<EOF | bash | prefix_stdout
+useradd --shell /bin/bash --system \
+ --home-dir "$SERVICE_HOME" \
+ --comment 'Web content sanitizer proxy' $SERVICE_USER
+mkdir "$SERVICE_HOME"
+chown -R "$SERVICE_GROUP:$SERVICE_GROUP" "$SERVICE_HOME"
+groups $SERVICE_USER
+EOF
+    SERVICE_HOME="$(sudo -i -u "$SERVICE_USER" echo \$HOME)"
+    export SERVICE_HOME
+    echo "export SERVICE_HOME=$SERVICE_HOME"
+
+    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER"
+touch $GO_ENV
+grep -qFs -- 'source "$GO_ENV"' ~/.profile || echo 'source "$GO_ENV"' >> ~/.profile
+EOF
+}
+
+morty_is_installed() {
+    [[ -f $SERVICE_HOME/go-apps/bin/morty ]]
+}
+
+install_morty() {
+    rst_title "Install morty in user's ~/go-apps" section
+    echo
+    go.install github.com/asciimoo/morty@latest "${SERVICE_USER}"
+}
+
+update_morty() {
+    rst_title "Update morty" section
+    echo
+    go.install github.com/asciimoo/morty@latest "${SERVICE_USER}"
+}
+
+set_service_env_debug() {
+
+    # usage:  set_service_env_debug [false|true]
+
+    # shellcheck disable=SC2034
+    local SERVICE_ENV_DEBUG="${1:-false}"
+    if systemd_remove_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"; then
+        systemd_install_service "${SERVICE_NAME}" "${SERVICE_SYSTEMD_UNIT}"
+    fi
+}
+
+inspect_service() {
+
+    rst_title "service status & log"
+
+    cat <<EOF
+
+sourced ${DOT_CONFIG} :
+  SERVICE_USER        : ${SERVICE_USER}
+  SERVICE_HOME        : ${SERVICE_HOME}
+  PUBLIC_URL_MORTY:   : ${PUBLIC_URL_MORTY}
+  MORTY_LISTEN:       : ${MORTY_LISTEN}
+
+EOF
+    install_log_searx_instance
+
+    install_check
 
     if in_container; then
         lxc_suite_info
@@ -489,7 +504,7 @@ This installs a reverse proxy (ProxyPass) into nginx site (${NGINX_MORTY_SITE})"
     # shellcheck disable=SC2034
     SEARX_SRC=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARX_SRC)
     # shellcheck disable=SC2034
-    SEARX_URL_PATH=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARX_URL_PATH)
+    SEARXNG_URL_PATH=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARXNG_URL_PATH)
     nginx_install_app "${NGINX_MORTY_SITE}"
 
     info_msg "testing public url .."

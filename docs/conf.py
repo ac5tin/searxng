@@ -14,7 +14,7 @@ copyright = '2021 SearXNG team, 2015-2021 Adam Tauber, Noémi Ványi'
 author = '2021 SearXNG team, 2015-2021 Adam Tauber'
 release, version = VERSION_STRING, VERSION_STRING
 
-SEARX_URL = get_setting('server.base_url') or 'https://example.org/searxng'
+SEARXNG_URL = get_setting('server.base_url') or 'https://example.org/searxng'
 ISSUE_URL = get_setting('brand.issue_url')
 DOCS_URL = get_setting('brand.docs_url')
 PUBLIC_INSTANCES = get_setting('brand.public_instances')
@@ -43,9 +43,39 @@ searx.engines.load_engines(searx.settings['engines'])
 jinja_contexts = {
     'searx': {
         'engines': searx.engines.engines,
-        'plugins': searx.plugins.plugins
+        'plugins': searx.plugins.plugins,
+        'version': {
+            'node': os.getenv('NODE_MINIMUM_VERSION')
+        },
+        'enabled_engine_count': sum(not x.disabled for x in searx.engines.engines.values()),
     },
 }
+jinja_filters = {
+    'sort_engines':
+    lambda engines: sorted(
+        engines,
+        key=lambda engine: (engine[1].disabled, engine[1].about.get('language', ''), engine[0])
+    )
+}
+
+# Let the Jinja template in configured_engines.rst access documented_modules
+# to automatically link documentation for modules if it exists.
+def setup(app):
+    ENGINES_DOCNAME = 'admin/engines/configured_engines'
+
+    def before_read_docs(app, env, docnames):
+        assert ENGINES_DOCNAME in docnames
+        docnames.remove(ENGINES_DOCNAME)
+        docnames.append(ENGINES_DOCNAME)
+        # configured_engines must come last so that sphinx already has
+        # discovered the python module documentations
+
+    def source_read(app, docname, source):
+        if docname == ENGINES_DOCNAME:
+            jinja_contexts['searx']['documented_modules'] = app.env.domains['py'].modules
+
+    app.connect('env-before-read-docs', before_read_docs)
+    app.connect('source-read', source_read)
 
 # usage::   lorem :patch:`f373169` ipsum
 extlinks = {}
@@ -58,7 +88,7 @@ extlinks['pull-searx'] = ('https://github.com/searx/searx/pull/%s', 'PR ')
 # links to custom brand
 extlinks['origin'] = (GIT_URL + '/blob/' + GIT_BRANCH + '/%s', 'git://')
 extlinks['patch'] = (GIT_URL + '/commit/%s', '#')
-extlinks['search'] = (SEARX_URL + '/%s', '#')
+extlinks['search'] = (SEARXNG_URL + '/%s', '#')
 extlinks['docs'] = (DOCS_URL + '/%s', 'docs: ')
 extlinks['pypi'] = ('https://pypi.org/project/%s', 'PyPi: ')
 extlinks['man'] = ('https://manpages.debian.org/jump?q=%s', '')
@@ -105,7 +135,7 @@ issues_github_path = "searxng/searxng"
 sys.path.append(os.path.abspath('_themes'))
 sys.path.insert(0, os.path.abspath("../utils/"))
 html_theme_path = ['_themes']
-html_theme = "searx"
+html_theme = "searxng"
 
 # sphinx.ext.imgmath setup
 html_math_renderer = 'imgmath'
@@ -127,13 +157,12 @@ if CONTACT_URL:
     html_context["project_links"].append(ProjectLink("Contact", CONTACT_URL))
 
 html_sidebars = {
-    "**": ["project.html", "relations.html", "searchbox.html"],
+    "**": ["project.html", "relations.html", "searchbox.html", "sourcelink.html"],
 }
 singlehtml_sidebars = {"index": ["project.html", "localtoc.html"]}
-html_static_path = ["static"]
-html_logo = "static/img/searx_logo_small.png"
+html_logo = "../src/brand/searxng-wordmark.svg"
 html_title = "SearXNG Documentation ({})".format(VERSION_STRING)
-html_show_sourcelink = False
+html_show_sourcelink = True
 
 # LaTeX ----------------------------------------------------------------
 

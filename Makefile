@@ -36,7 +36,7 @@ install uninstall:
 	$(Q)./manage pyenv.$@
 
 PHONY += clean
-clean: py.clean docs.clean node.clean test.clean
+clean: py.clean docs.clean node.clean nvm.clean test.clean
 	$(Q)./manage build_msg CLEAN  "common files"
 	$(Q)find . -name '*.orig' -exec rm -f {} +
 	$(Q)find . -name '*.rej' -exec rm -f {} +
@@ -64,7 +64,9 @@ test.shell:
 		$(MTOOLS) \
 		utils/lib.sh \
 		utils/lib_install.sh \
+		utils/lib_nvm.sh \
 		utils/lib_static.sh \
+		utils/lib_go.sh \
 	        utils/filtron.sh \
 	        utils/searx.sh \
 	        utils/morty.sh \
@@ -87,30 +89,19 @@ MANAGE += py.build py.clean
 MANAGE += pyenv pyenv.install pyenv.uninstall
 MANAGE += pypi.upload pypi.upload.test
 MANAGE += test.yamllint test.pylint test.pep8 test.unit test.coverage test.robot test.clean
-MANAGE += themes.all themes.oscar themes.simple pygments.less
+MANAGE += themes.all themes.oscar themes.simple themes.simple.test pygments.less
 MANAGE += static.build.commit static.build.drop static.build.restore
+MANAGE += nvm.install nvm.clean nvm.status nvm.nodejs
 
 PHONY += $(MANAGE)
 
 $(MANAGE):
 	$(Q)$(MTOOLS) $@
 
+# short hands of selected targets
 
-# deprecated
-
-PHONY += docs docs-clean docs-live docker themes
+PHONY += docs docker themes
 
 docs: docs.html
-	$(Q)./manage build_msg WARN $@ is deprecated use docs.html
-
-docs-clean: docs.clean
-	$(Q)./manage build_msg WARN $@ is deprecated use docs.clean
-
-docs-live: docs.live
-	$(Q)./manage build_msg WARN $@ is deprecated use docs.live
-
 docker:  docker.build
-	$(Q)./manage build_msg WARN $@ is deprecated use docker.build
-
 themes: themes.all
-	$(Q)./manage build_msg WARN $@ is deprecated use themes.all

@@ -1,15 +1,6 @@
-<!-- Draw glyphicon icon from bootstrap-theme -->
-{% macro icon(action, alt) -%}
-    <span title="{{ alt }}" class="ion-icon-big ion-{{ action }}"></span>
-{%- endmacro %}
-
-{% macro icon_small(action) -%}
-    <span class="ion-icon ion-{{ action }}"></span>
-{%- endmacro %}
-
 <!-- Draw favicon -->
 {% macro draw_favicon(favicon) -%}
-    <img width="14" height="14" class="favicon" src="{{ url_for('static', filename='themes/simple/img/icons/' + favicon + '.png') }}" alt="{{ favicon }}" />
+    <img width="14" height="14" class="favicon" src="{{ url_for('static', filename='themes/simple/img/icons/' + favicon + '.png') }}" alt="{{ favicon }}">
 {%- endmacro %}
 
 {% macro result_open_link(url, classes='') -%}
@@ -27,11 +18,13 @@
 <!-- Draw result header -->
 {% macro result_header(result, favicons, image_proxify) -%}
 <article class="result {% if result['template'] %}result-{{ result.template|replace('.html', '') }}{% else %}result-default{% endif %} {% if result['category'] %}category-{{ result['category'] }}{% endif %}{% for e in result.engines %} {{ e }}{% endfor %}">
-  <p class="url">
-    <span class="url">{{ result.pretty_url }}</span>
-  </p>{{- '' -}}
-  {%- if result.img_src %}{{ result_open_link(result.url) }}<img class="image" src="{{ image_proxify(result.img_src) }}" alt="{{ result.title|striptags }}" title="{{ result.title|striptags }}" class="image" />{{ result_close_link() }}{% endif -%}
-  {%- if result.thumbnail %}{{ result_open_link(result.url) }}<img class="thumbnail" src="{{ image_proxify(result.thumbnail) }}" title="{{ result.title|striptags }}" alt="{{ result.title|striptags }}"/>{{ result_close_link() }}{% endif -%}
+  {{- result_open_link(result.url, "url_wrapper") -}}
+  {%- for part in get_pretty_url(result.parsed_url) -%}
+  <span class="url_o{{loop.index}}"><span class="url_i{{loop.index}}">{{- part -}}</span></span>
+  {%- endfor %}
+  {{- result_close_link() -}}
+  {%- if result.img_src %}{{ result_open_link(result.url) }}<img class="image" src="{{ image_proxify(result.img_src) }}" title="{{ result.title|striptags }}" loading="lazy" width="200" height="200">{{ result_close_link() }}{% endif -%}
+  {%- if result.thumbnail %}{{ result_open_link(result.url) }}<img class="thumbnail" src="{{ image_proxify(result.thumbnail) }}" title="{{ result.title|striptags }}" loading="lazy" width="200" height="200">{{ result_close_link() }}{% endif -%}
   <h3>{{ result_link(result.url, result.title|safe) }}</h3>
 {%- endmacro -%}
 
@@ -45,7 +38,7 @@
 {%- macro result_sub_footer(result, proxify) -%}
 <div class="engines">
   {% for engine in result.engines %}<span>{{ engine }}</span>{% endfor %}
-  {{ result_link("https://web.archive.org/web/" + result.url, icon('link') + _('cached'), "cache_link") }}&lrm; {% if proxify and proxify_results %} {{ result_link(proxify(result.url), icon('link') + _('proxied'), "proxyfied_link") }} {% endif %}
+  {{ result_link("https://web.archive.org/web/" + result.url, icon_small('ellipsis-vertical-outline') + _('cached'), "cache_link") }}&lrm; {% if proxify and proxify_results %} {{ result_link(proxify(result.url), icon('link') + _('proxied'), "proxyfied_link") }} {% endif %}
 </div>{{- '' -}}
 <div class="break"></div>{{- '' -}}
 {%- endmacro -%}

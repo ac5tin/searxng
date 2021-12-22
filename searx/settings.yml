@@ -20,6 +20,13 @@ search:
   # Default search language - leave blank to detect from browser information or
   # use codes from 'languages.py'
   default_lang: "en-GB"
+  # Available languages
+  # languages:
+  #  - all
+  #  - es
+  #  - de
+  #  - it-IT
+  #  - en-GB
   # ban time in seconds after engine errors
   ban_time_on_fail: 5
   # max ban time in seconds after engine errors
@@ -59,6 +66,9 @@ ui:
   static_path: ""
   # Custom templates path - leave it blank if you didn't change
   templates_path: ""
+  # query_in_title: When true, the result page's titles contains the query
+  # it decreases the privacy, since the browser can records the page titles.
+  query_in_title: false
   # ui theme
   default_theme: oscar
   # Default interface locale - leave blank to detect from browser information or
@@ -67,6 +77,8 @@ ui:
   theme_args:
     # default style of oscar
     oscar_style: logicodev-dark
+    # style of simple theme: auto, light, dark
+    simple_style: auto
     # Open result links in a new tab by default
     # results_on_new_tab: false
     # categories_order :
@@ -84,6 +96,7 @@ ui:
 #     - language
 #     - autocomplete
 #     - method
+#     - query_in_title
 
 # searx supports result proxification using an external service:
 # https://github.com/asciimoo/morty uncomment below section if you have running
@@ -145,22 +158,32 @@ outgoing:
 #   - plugin2
 #   - ...
 
-# uncomment below section if you want to configure which plugin is enabled by
-# default
+# Comment or un-comment plugin to activate / deactivate by default.
 #
 # enabled_plugins:
-#   - "HTTPS rewrite"
-#   - "Hostname replace"  # see configuration below
+#   # these plugins are enabled if nothing is configured ..
+#   - 'Hash plugin'
+#   - 'Search on category select'
+#   - 'Self Informations'
+#   - 'Tracker URL remover'
+#   - 'Ahmia blacklist'  # activation depends on outgoing.using_tor_proxy
+#   # these plugins are disabled if nothing is configured ..
+#   - 'Hostname replace'  # see hostname_replace configuration below
+#   - 'Infinite scroll'
+#   - 'Open Access DOI rewrite'
+#   - 'Vim-like hotkeys'
 
-# "Hostname replace" plugin configuration example:
+# Configuration of the "Hostname replace" plugin:
+#
 # hostname_replace:
-#   '(.*\.)?youtube\.com$':           'invidious.example.com'
-#   '(.*\.)?youtu\.be$':              'invidious.example.com'
+#   '(.*\.)?youtube\.com$': 'invidious.example.com'
+#   '(.*\.)?youtu\.be$': 'invidious.example.com'
 #   '(.*\.)?youtube-noocookie\.com$': 'yotter.example.com'
-#   '(.*\.)?reddit\.com$':            'teddit.example.com'
-#   '(.*\.)?redd\.it$':               'teddit.example.com'
-#   '(www\.)?twitter\.com$':          'nitter.example.com'
-#   'spam\.example\.com':             false  # remove results from spam.example.com
+#   '(.*\.)?reddit\.com$': 'teddit.example.com'
+#   '(.*\.)?redd\.it$': 'teddit.example.com'
+#   '(www\.)?twitter\.com$': 'nitter.example.com'
+#   # to remove matching host names from result list, set value to false
+#   'spam\.example\.com': false
 
 checker:
   # disable checker when in debug mode
@@ -336,6 +359,9 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+      # We don't set language: de here because media.ccc.de is not just
+      # for a German audience. It contains many English videos and many
+      # German videos have English subtitles.
 
   - name: ccengine
     engine: ccengine
@@ -551,7 +577,7 @@ engines:
   - name: gigablast
     engine: gigablast
     shortcut: gb
-    timeout: 3.0
+    timeout: 4.0
     disabled: true
     additional_tests:
       rosebud: *test_rosebud
@@ -700,7 +726,7 @@ engines:
     title_query: title
     content_query: description
     page_size: 19
-    categories: social media, files, general
+    categories: music
     disabled: true
     about:
       website: https://gpodder.net
@@ -709,25 +735,6 @@ engines:
       use_official_api: false
       requires_api_key: false
       results: JSON
-
-  - name: geektimes
-    engine: xpath
-    paging: true
-    search_url: https://habr.com/en/search/page{pageno}/?q={query}
-    url_xpath: //article[contains(@class, "post")]//a[@class="post__title_link"]/@href
-    title_xpath: //article[contains(@class, "post")]//a[@class="post__title_link"]
-    content_xpath: //article[contains(@class, "post")]//div[contains(@class, "post__text")]
-    categories: it
-    timeout: 4.0
-    disabled: true
-    shortcut: gt
-    about:
-      website: https://geektimes.ru/
-      wikidata_id: Q50572423
-      official_api_documentation:
-      use_official_api: false
-      require_api_key: false
-      results: HTML
 
   - name: habrahabr
     engine: xpath
@@ -760,7 +767,7 @@ engines:
     categories: it
     shortcut: ho
     about:
-      website: https://www.haskell.org/
+      website: https://hoogle.haskell.org/
       wikidata_id: Q34010
       official_api_documentation: https://hackage.haskell.org/api
       use_official_api: false
@@ -796,12 +803,11 @@ engines:
 
   - name: library genesis
     engine: xpath
-    enable_http: true
     search_url: https://libgen.rs/search.php?req={query}
     url_xpath: //a[contains(@href,"bookfi.net/md5")]/@href
     title_xpath: //a[contains(@href,"book/")]/text()[1]
     content_xpath: //td/a[1][contains(@href,"=author")]/text()
-    categories: general
+    categories: files
     timeout: 7.0
     disabled: true
     shortcut: lg
@@ -854,7 +860,7 @@ engines:
     engine: xpath
     timeout: 4.0
     disabled: true
-    categories: general
+    categories: music
     paging: true
     search_url: https://search.azlyrics.com/search.php?q={query}&w=lyrics&p={pageno}
     url_xpath: //td[@class="text-left visitedlyr"]/a/@href
@@ -879,6 +885,7 @@ engines:
     engine: microsoft_academic
     categories: science
     shortcut: ma
+    timeout: 6.0
 
   - name: mixcloud
     engine: mixcloud
@@ -901,6 +908,7 @@ engines:
   - name: npm
     engine: json_engine
     paging: true
+    first_page_num: 0
     search_url: https://api.npms.io/v2/search?q={query}&size=25&from={pageno}
     results_query: results
     url_query: package/links/npm
@@ -1138,8 +1146,6 @@ engines:
     engine: reddit
     shortcut: re
     page_size: 25
-    timeout: 10.0
-    disabled: true
 
   # Required dependency: redis
   # - name: myredis
@@ -1353,13 +1359,6 @@ engines:
     # Or you can use the html non-stable engine, activated by default
     engine: youtube_noapi
 
-  - name: yggtorrent
-    engine: yggtorrent
-    shortcut: ygg
-    url: https://www4.yggtorrent.li/
-    disabled: true
-    timeout: 4.0
-
   - name: dailymotion
     engine: dailymotion
     shortcut: dm
@@ -1378,6 +1377,8 @@ engines:
     categories: general
     shortcut: wib
     disabled: true
+    about:
+      website: https://wiby.me/
 
   - name: wikibooks
     engine: mediawiki
@@ -1538,28 +1539,6 @@ engines:
       require_api_key: false
       results: HTML
 
-  - name: whaleslide
-    shortcut: whale
-    engine: json_engine
-    paging: true
-    # This API Token is needed to work
-    search_url:
-      https://search.whaleslide.com/api/v1/search_v2/web/{pageno}?q={query}&api_token=f8OhUDEYKUICHDnIxEgI7Cb4uYyTBqT4nO8iueNbfTO3devS24yElGqM7nCm
-    url_query: url
-    title_query: title
-    title_html_to_text: true
-    content_query: abstract
-    content_html_to_text: true
-    categories: general
-    disabled: true
-    about:
-      website: https://whaleslide.com/
-      wikidata_id:  # No Wikidata page
-      official_api_documentation: false
-      use_official_api: false
-      require_api_key: false
-      results: JSON
-
   - name: naver
     shortcut: nvr
     engine: xpath
@@ -1578,6 +1557,7 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+      language: ko
 
   - name: rubygems
     shortcut: rbg
@@ -1654,6 +1634,7 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+      language: de
 
   - name: słownik języka polskiego
     engine: sjp
@@ -1681,6 +1662,7 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+      language: fr
 
   - name: brave
     shortcut: brave
