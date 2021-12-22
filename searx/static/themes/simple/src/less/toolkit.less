@@ -89,7 +89,7 @@ td {
 
 tr {
   &:hover {
-    background: var(--color-settings-tr-hover);
+    background: var(--color-settings-tr-hover) !important;
   }
 }
 
@@ -99,7 +99,7 @@ tr {
   font-size: 0.8em;
   word-break: break-all;
   margin: 0.1em;
-  .select-all-on-focus();
+  user-select: all;
 }
 
 div.selectable_url {
@@ -111,6 +111,7 @@ div.selectable_url {
   overflow: hidden;
   height: 1.2em;
   line-height: 1.2em;
+  .rounded-corners-tiny;
 
   pre {
     .pre();
@@ -120,19 +121,12 @@ div.selectable_url {
 // dialog
 .dialog() {
   position: relative;
-  padding: 1em 1em 1em 2.7em;
+  display: flex;
+  padding: 1rem;
   margin: 0 0 1em 0;
   border: 1px solid var(--color-toolkit-dialog-border);
   text-align: left;
   .rounded-corners;
-
-  &::before {
-    position: absolute;
-    top: 0.5em;
-    left: 0.5em;
-    font-family: "ion"; // stylelint-disable font-family-no-missing-generic-family-keyword
-    font-size: 1.5em;
-  }
 
   .close {
     float: right;
@@ -156,7 +150,7 @@ div.selectable_url {
     vertical-align: text-top;
 
     &:hover {
-      background: transparent;
+      background: transparent !important;
     }
   }
 
@@ -176,7 +170,6 @@ div.selectable_url {
   color: var(--color-error);
   background: var(--color-error-background);
   border-color: var(--color-error);
-  .ion-error();
 }
 
 .dialog-warning {
@@ -185,22 +178,23 @@ div.selectable_url {
   color: var(--color-warning);
   background: var(--color-warning-background);
   border-color: var(--color-warning);
-  .ion-warning();
 }
 
 .dialog-modal {
   .dialog();
 
+  display: block;
   background: var(--color-toolkit-dialog-background);
   position: fixed;
   top: 50%;
   left: 50%;
-
-  /* bring your own prefixes */
+  margin: 0 auto;
   transform: translate(-50%, -50%);
-  z-index: 100000;
-  margin: 0 50% 0 0;
-  box-shadow: 0 0 1em;
+  z-index: 10000000;
+
+  h3 {
+    margin-top: 0;
+  }
 }
 
 // btn-collapse
@@ -224,8 +218,7 @@ div.selectable_url {
 }
 
 .tabs {
-  .flexbox();
-
+  display: flex;
   flex-wrap: wrap;
   width: 100%;
   min-width: 100%;
@@ -269,7 +262,6 @@ div.selectable_url {
     border-bottom: 2px solid var(--color-categories-item-border-selected);
     background: var(--color-categories-item-selected);
     color: var(--color-categories-item-selected-font);
-    font-weight: bold;
     letter-spacing: -0.1px;
   }
 
@@ -308,11 +300,11 @@ html body .tabs > input:checked {
 
 /* -- select -- */
 select {
-  height: 28px;
-  margin: 0 1em 0 0;
-  padding: 2px 8px 2px 0 !important;
+  height: 2.4rem;
+  margin: 0 1rem 0 0;
+  padding: 0.2rem !important;
   color: var(--color-search-font);
-  font-size: 12px;
+  font-size: 0.9rem;
   z-index: 2;
 
   &:hover,
@@ -326,18 +318,36 @@ select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    border: none;
-    border-bottom: 1px solid var(--color-toolkit-select-border);
-    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSI1MTJweCIgaGVpZ2h0PSI1MTJweCIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDUxMiA1MTIiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxnPjxwb2x5Z29uIHBvaW50cz0iMTI4LDE5MiAyNTYsMzIwIDM4NCwxOTIiLz48L2c+PC9zdmc+Cg==) no-repeat;
-    background-position-x: 105%;
-    background-size: 2em;
+    border-width: 0 2rem 0 0;
+    border-color: transparent;
+    background: data-uri('image/svg+xml;charset=UTF-8', @select-light-svg-path) no-repeat;
+    background-position-x: calc(100% + 2rem);
+    background-size: 2rem;
     background-origin: content-box;
+    background-color: var(--color-toolkit-select-background);
     outline: medium none;
+    text-overflow: ellipsis;
+    .rounded-corners-tiny;
 
     &:hover,
     &:focus {
-      border-bottom: 1px solid var(--color-search-border);
+      background-color: var(--color-toolkit-select-background-hover);
     }
+
+    option {
+      background-color: var(--color-base-background);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html.theme-auto select,
+    html.theme-dark select {
+      background-image: data-uri('image/svg+xml;charset=UTF-8', @select-dark-svg-path);
+    }
+  }
+
+  html.theme-dark select {
+    background-image: data-uri('image/svg+xml;charset=UTF-8', @select-dark-svg-path);
   }
 }
 
@@ -360,7 +370,6 @@ select {
       top: -5px;
       cursor: pointer;
       border-radius: 50px;
-      box-shadow: 0 3px 5px 0 var(--color-toolkit-checkbox-onoff-label-shadow);
       transition: all 0.4s ease;
       left: 27px;
       background-color: var(--color-toolkit-checkbox-onoff-label-background);
@@ -422,7 +431,6 @@ select {
     // disabled : can''t be focused, show only the check mark
     input[disabled] + label {
       background-color: transparent !important;
-      box-shadow: none !important;
       cursor: inherit;
     }
 
@@ -433,7 +441,7 @@ select {
   }
 }
 
-@media screen and (max-width: 50em) {
+@media screen and (max-width: @phone) {
   .tabs > label {
     width: 100%;
   }
@@ -494,7 +502,6 @@ select {
   padding: 0.5rem 1rem;
   margin: 0 0 0 2rem;
   border: 1px solid var(--color-toolkit-engine-tooltip-border);
-  box-shadow: 0 0 5px var(--color-toolkit-engine-tooltip-shadow);
   background: var(--color-toolkit-engine-tooltip-background);
   font-size: 14px;
   font-weight: normal;
@@ -541,8 +548,8 @@ td:hover .engine-tooltip,
 .stacked-bar-chart-median {
   .stacked-bar-chart-base();
 
-  background: @stacked-bar-chart;
-  border: 1px solid fade(@stacked-bar-chart, 90%);
+  background: var(--color-base-font);
+  border: 1px solid rgba(var(--color-base-font-rgb), 0.9);
   padding: 0.3rem 0;
 }
 
@@ -550,7 +557,7 @@ td:hover .engine-tooltip,
   .stacked-bar-chart-base();
 
   background: transparent;
-  border: 1px solid fade(@stacked-bar-chart, 30%);
+  border: 1px solid rgba(var(--color-base-font-rgb), 0.3);
   padding: 0.3rem 0;
 }
 
@@ -558,7 +565,7 @@ td:hover .engine-tooltip,
   .stacked-bar-chart-base();
 
   background: transparent;
-  border-bottom: 1px dotted fade(@stacked-bar-chart, 50%);
+  border-bottom: 1px dotted rgba(var(--color-base-font-rgb), 0.5);
   padding: 0;
 }
 
@@ -566,7 +573,7 @@ td:hover .engine-tooltip,
   .stacked-bar-chart-base();
 
   background: transparent;
-  border-left: 1px solid fade(@stacked-bar-chart, 90%);
+  border-left: 1px solid rgba(var(--color-base-font-rgb), 0.9);
   padding: 0.4rem 0;
   width: 1px;
 }

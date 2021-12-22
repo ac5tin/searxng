@@ -17,8 +17,9 @@ searx_dir = abspath(dirname(__file__))
 
 logger = logging.getLogger('searx')
 OUTPUT_FORMATS = ['html', 'csv', 'json', 'rss']
-LANGUAGE_CODES = ('', 'all') + tuple(l[0] for l in languages)
+LANGUAGE_CODES = ['all'] + list(l[0] for l in languages)
 OSCAR_STYLE = ('logicodev', 'logicodev-dark', 'pointhi')
+SIMPLE_STYLE = ('auto', 'light', 'dark')
 CATEGORY_ORDER = [
     'general',
     'images',
@@ -98,6 +99,18 @@ class SettingsValue:
         self.check_type_definition(value)
         return value
 
+
+class SettingSublistValue(SettingsValue):
+    """Check the value is a sublist of type definition.
+    """
+
+    def check_type_definition(self, value: typing.Any) -> typing.Any:
+        if not isinstance(value, list):
+            raise ValueError('The value has to a list')
+        for item in value:
+            if not item in self.type_definition[0]:
+                raise ValueError('{} not in {}'.format(item, self.type_definition))
+
 class SettingsDirectoryValue(SettingsValue):
     """Check and update a setting value that is a directory path
     """
@@ -139,16 +152,17 @@ SCHEMA = {
         'contact_url': SettingsValue((None, False, str), None),
     },
     'brand': {
-        'issue_url': SettingsValue(str, None),
-        'new_issue_url': SettingsValue(str, None),
-        'docs_url': SettingsValue(str, None),
-        'public_instances': SettingsValue(str, None),
-        'wiki_url': SettingsValue(str, None),
+        'issue_url': SettingsValue(str, 'https://github.com/searxng/searxng/issues'),
+        'new_issue_url': SettingsValue(str, 'https://github.com/searxng/searxng/issues/new'),
+        'docs_url': SettingsValue(str, 'https://searxng.github.io/searxng'),
+        'public_instances': SettingsValue(str, 'https://searx.space'),
+        'wiki_url': SettingsValue(str, 'https://github.com/searxng/searxng/wiki'),
     },
     'search': {
         'safe_search': SettingsValue((0,1,2), 0),
         'autocomplete': SettingsValue(str, ''),
-        'default_lang': SettingsValue(LANGUAGE_CODES, ''),
+        'default_lang': SettingsValue(tuple(LANGUAGE_CODES + ['']), ''),
+        'languages': SettingSublistValue(LANGUAGE_CODES, LANGUAGE_CODES),
         'ban_time_on_fail': SettingsValue(numbers.Real, 5),
         'max_ban_time_on_fail': SettingsValue(numbers.Real, 120),
         'formats': SettingsValue(list, OUTPUT_FORMATS),
@@ -170,9 +184,11 @@ SCHEMA = {
         'default_locale': SettingsValue(str, ''),
         'theme_args': {
             'oscar_style': SettingsValue(OSCAR_STYLE, 'logicodev'),
+            'simple_style': SettingsValue(SIMPLE_STYLE, 'auto'),
         },
         'results_on_new_tab': SettingsValue(bool, False),
         'advanced_search': SettingsValue(bool, False),
+        'query_in_title': SettingsValue(bool, False),
         'categories_order': SettingsValue(list, CATEGORY_ORDER),
     },
     'preferences': {

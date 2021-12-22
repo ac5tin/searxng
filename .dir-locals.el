@@ -19,6 +19,7 @@
 ;; Some buffer locals are referencing the project environment:
 ;;
 ;; - prj-root                                --> <repo>/
+;; - nvm-dir                                 --> <repo>/.nvm
 ;; - python-environment-directory            --> <repo>/local
 ;; - python-environment-default-root-name    --> py3
 ;; - python-shell-virtualenv-root            --> <repo>/local/py3
@@ -50,12 +51,17 @@
      (indent-tabs-mode . nil)
      (eval . (progn
 
+               (add-to-list 'auto-mode-alist '("\\.html\\'" . jinja2-mode))
+
                ;; project root folder is where the `.dir-locals.el' is located
                (setq-local prj-root
                            (locate-dominating-file  default-directory ".dir-locals.el"))
 
                (setq-local python-environment-directory
                            (expand-file-name "./local" prj-root))
+
+               ;; to get in use of NVM enviroment, install https://github.com/rejeep/nvm.el
+               (setq-local nvm-dir (expand-file-name "./.nvm" prj-root))
 
                ;; use 'py3' enviroment as default
                (setq-local python-environment-default-root-name
@@ -85,15 +91,14 @@
 
  (json-mode
   . ((eval . (progn
-               (setq-local js-indent-level 2)
+               (setq-local js-indent-level 4)
                (flycheck-checker . json-python-json)))))
 
  (js-mode
   . ((eval . (progn
+               ;; use nodejs from the (local) NVM environment (see nvm-dir)
+               (nvm-use-for-buffer)
                (setq-local js-indent-level 2)
-               ;; flycheck should use the eslint checker from simple theme
-               (setq-local flycheck-javascript-eslint-executable
-                           (expand-file-name "searx/static/themes/simple/node_modules/.bin/eslint" prj-root))
                (flycheck-mode)
                ))))
 

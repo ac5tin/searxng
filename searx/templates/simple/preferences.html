@@ -1,4 +1,5 @@
-{% from 'simple/macros.html' import icon, tabs_open, tabs_close, tab_header, tab_footer, checkbox_onoff, checkbox %}
+{% from 'simple/macros.html' import tabs_open, tabs_close, tab_header, tab_footer, checkbox_onoff, checkbox %}
+{% from 'simple/icons.html' import icon_big %}
 
 {% extends "simple/base.html" %}
 
@@ -25,7 +26,7 @@
     <p class="engine-description"></p>
     <p><a href="{{about.website}}" rel="noreferrer">{{about.website}}</a></p>
     {%- if about.wikidata_id -%}<p><a href="https://www.wikidata.org/wiki/{{about.wikidata_id}}" rel="noreferrer">wikidata.org/wiki/{{about.wikidata_id}}</a></p>{%- endif -%}
-    {%- if search_engine.enable_http %}<p>{{ icon('exclamation-sign', 'No HTTPS') }}{{ _('No HTTPS')}}</p>{% endif -%}
+    {%- if search_engine.enable_http %}<p>{{ icon_big('exclamation-sign', 'No HTTPS') }}{{ _('No HTTPS')}}</p>{% endif -%}
     {%- if reliabilities.get(search_engine.name, {}).errors or reliabilities.get(search_engine.name, {}).checker -%}
     <a href="{{ url_for('stats', engine=search_engine.name|e) }}" title="{{ _('View error logs and submit a bug report') }}">
       {{ _('View error logs and submit a bug report') }}
@@ -74,7 +75,7 @@
 <td class="{{ label }} column-reliability">{{- "" -}}
     <a href="{{ url_for('stats', engine=engine_name|e) }}">{{- "" -}}
       <span aria-labelledby="{{engine_name}}_reliability">
-          {{ icon('warning', 'The engine is not reliabled') }} {{ r -}}
+          {{ icon_big('warning', 'The engine is not reliabled') }} {{ r -}}
       </span>{{- "" -}}
     </a>{{- "" -}}
     <div class="engine-tooltip" role="tooltip" id="{{engine_name}}_reliability">
@@ -168,6 +169,13 @@
       <div class="description"><!-- {{ _('Redirect to open-access versions of publications when available (plugin required)') }} --></div>
     </fieldset>
     {% endif %}
+    <fieldset>
+      <legend>{{ _('Engine tokens') }}</legend>
+      <p class="value">
+        <input name="tokens" type="text" autocomplete="off" spellcheck="false" autocorrect="off" value='{{ preferences.tokens.get_value() }}'/>
+      </p>
+      <p class="description">{{ _('Access tokens for private engines') }}</p>
+    </fieldset>
   {{ tab_footer() }}
 
   {{ tab_header('maintab', 'ui', _('User interface')) }}
@@ -195,6 +203,17 @@
         </select>
       </p>
       <div class="description">{{ _('Change SearXNG layout') }}</div>
+    </fieldset>
+    <fieldset>
+      <legend>{{ _('Theme style') }}</legend>
+      <p class="value">
+        <select name="simple_style">
+          {%- for name in ['auto', 'light', 'dark'] -%}
+          <option value="{{ name }}" {% if name == preferences.get_value('simple_style') %}selected="selected"{% endif %}>{{ _(name) }}</option>
+          {%- endfor -%}
+        </select>
+      </p>
+      <div class="description">{{ _('Choose auto to follow your browser settings') }}</div>
     </fieldset>
     {% endif %}
     {% if 'results_on_new_tab' not in locked_preferences %}
@@ -237,6 +256,18 @@
       <div class="description">{{ _('Proxying image results through SearXNG') }}</div>
     </fieldset>
     {% endif %}
+    {% if 'query_in_title' not in locked_preferences %}
+    <fieldset>
+      <legend>{{ _("Query in the page's title") }}</legend>
+      <p class="value">
+        <select name='query_in_title'>
+          <option value="1" {% if query_in_title %}selected="selected"{% endif %}>{{ _('Enabled') }}</option>
+          <option value="" {% if not query_in_title %}selected="selected"{% endif %}>{{ _('Disabled') }}</option>
+        </select>
+      </p>
+      <div class="description">{{ _("When enabled, the result page's title contains your query. Your browser can record this title") }}</div>
+    </fieldset>
+    {% endif %}
     {{ plugin_preferences('privacy') }}
   {{ tab_footer() }}
 
@@ -263,7 +294,7 @@
       {% set engine_id = 'engine_' + search_engine.name|replace(' ', '_') + '__' + categ|replace(' ', '_') %}
       <tr>
         <td class="engine_checkbox">{{ checkbox_onoff(engine_id, (search_engine.name, categ) in disabled_engines) }}</td>
-        <th class="name" data-engine-name="{{ search_engine.name }}">{% if search_engine.enable_http %}{{ icon('warning', 'No HTTPS') }}{% endif %} {{ search_engine.name }} {{ engine_about(search_engine) }}</th>
+        <th class="name" data-engine-name="{{ search_engine.name }}">{% if search_engine.enable_http %}{{ icon_big('warning', 'No HTTPS') }}{% endif %} {{ search_engine.name }} {{ engine_about(search_engine) }}</th>
         <td class="shortcut">{{ shortcuts[search_engine.name] }}</td>
         <td>{{ checkbox(engine_id + '_supported_languages', supports[search_engine.name]['supports_selected_language'], true, true) }}</td>
         <td>{{ checkbox(engine_id + '_safesearch', supports[search_engine.name]['safesearch'], true, true) }}</td>
@@ -293,7 +324,7 @@
         <th>{{ _('Examples') }}</th>
       </tr>
       <td></td>
-      <th scope="colgroup" colspan="4">{{ _('This is the list of SearXNG\'s instant answering modules.') }}</th>
+      <th scope="colgroup" colspan="4">{{ _("This is the list of SearXNG's instant answering modules.") }}</th>
       {% for answerer in answerers %}
       <tr>
         <td></td>

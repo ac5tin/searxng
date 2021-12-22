@@ -90,7 +90,6 @@ from searx.plugins.oa_doi_rewrite import get_doi_resolver
 from searx.preferences import (
     Preferences,
     ValidationException,
-    LANGUAGE_CODES,
 )
 from searx.answerers import (
     answerers,
@@ -173,6 +172,12 @@ _category_names = (
     gettext('map'),
     gettext('onions'),
     gettext('science')
+)
+
+_simple_style = (
+    gettext('auto'),
+    gettext('light'),
+    gettext('dark')
 )
 
 #
@@ -414,6 +419,16 @@ def _get_enable_categories(all_categories):
     return [x for x in all_categories if x in enabled_categories]
 
 
+def get_pretty_url(parsed_url):
+    path = parsed_url.path
+    path = path[:-1] if len(path) > 0 and path[-1] == '/' else path
+    path = path.replace("/", " › ")
+    return [
+        parsed_url.scheme + "://" + parsed_url.netloc,
+        path
+    ]
+
+
 def render(template_name, override_theme=None, **kwargs):
     # values from the HTTP requests
     kwargs['endpoint'] = 'results' if 'q' in kwargs else request.endpoint
@@ -426,13 +441,14 @@ def render(template_name, override_theme=None, **kwargs):
     kwargs['autocomplete'] = request.preferences.get_value('autocomplete')
     kwargs['results_on_new_tab'] = request.preferences.get_value('results_on_new_tab')
     kwargs['advanced_search'] = request.preferences.get_value('advanced_search')
+    kwargs['query_in_title'] = request.preferences.get_value('query_in_title')
     kwargs['safesearch'] = str(request.preferences.get_value('safesearch'))
     kwargs['theme'] = get_current_theme_name(override=override_theme)
     kwargs['all_categories'] = _get_ordered_categories()
     kwargs['categories'] = _get_enable_categories(kwargs['all_categories'])
 
     # i18n
-    kwargs['language_codes'] = languages  # from searx.languages
+    kwargs['language_codes'] = [ l for l in languages if l[0] in settings['search']['languages'] ]
     kwargs['translations'] = json.dumps(get_translations(), separators=(',', ':'))
 
     locale = request.preferences.get_value('locale')
@@ -442,7 +458,7 @@ def render(template_name, override_theme=None, **kwargs):
         kwargs['rtl'] = True
     if 'current_language' not in kwargs:
         kwargs['current_language'] = match_language(
-            request.preferences.get_value('language'), LANGUAGE_CODES )
+            request.preferences.get_value('language'), settings['search']['languages'] )
 
     # values from settings
     kwargs['search_formats'] = [
@@ -452,6 +468,7 @@ def render(template_name, override_theme=None, **kwargs):
     kwargs['searx_version'] = VERSION_STRING
     kwargs['searx_git_url'] = GIT_URL
     kwargs['get_setting'] = get_setting
+    kwargs['get_pretty_url'] = get_pretty_url
 
     # helpers to create links to other pages
     kwargs['url_for'] = url_for_theme  # override url_for function in templates
@@ -524,7 +541,7 @@ def pre_request():
     # language is defined neither in settings nor in preferences
     # use browser headers
     if not preferences.get_value("language"):
-        language =  _get_browser_language(request, LANGUAGE_CODES)
+        language =  _get_browser_language(request, settings['search']['languages'])
         preferences.parse_dict({"language": language})
 
     # locale is defined neither in settings nor in preferences
@@ -617,6 +634,11 @@ def index():
         'index.html',
         selected_categories=get_selected_categories(request.preferences, request.form),
     )
+
+
+@app.route('/healthz', methods=['GET'])
+def health():
+    return Response('OK', mimetype='text/plain')
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -807,7 +829,7 @@ def search():
         ),
         current_language = match_language(
             search_query.lang,
-            LANGUAGE_CODES,
+            settings['search']['languages'],
             fallback=request.preferences.get_value("language")
         ),
         theme = get_current_theme_name(),
@@ -894,6 +916,8 @@ def autocompleter():
         suggestions = json.dumps([sug_prefix, results])
         mimetype = 'application/x-suggestions+json'
 
+    if get_current_theme_name() == 'simple':
+        suggestions = escape(suggestions, False)
     return Response(suggestions, mimetype=mimetype)
 
 

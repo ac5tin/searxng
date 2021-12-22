@@ -27,6 +27,37 @@
     padding: 0;
     float: left;
     width: 15em;
+
+    select,
+    input[type="text"] {
+      font-size: inherit !important;
+      margin: 0 1rem 0 0;
+    }
+
+    select {
+      width: 14rem;
+    }
+
+    input[type="text"] {
+      width: 13.25rem;
+      color: var(--color-toolkit-input-text-font);
+      border: none;
+      background: none repeat scroll 0 0 var(--color-toolkit-select-background);
+      padding: 0.2rem 0.4rem;
+      height: 2rem;
+      .rounded-corners-tiny;
+
+      &:hover,
+      &:focus {
+        background-color: var(--color-toolkit-select-background-hover);
+      }
+    }
+
+    select:focus,
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 1px 1px var(--color-btn-background);
+    }
   }
 
   .description {
@@ -38,11 +69,6 @@
     font-size: 90%;
   }
 
-  select {
-    width: 200px;
-    font-size: inherit !important;
-  }
-
   table {
     border-collapse: collapse;
   }
@@ -52,23 +78,45 @@
   }
 
   table.cookies {
-    width: auto;
+    width: 100%;
 
     th,
     td {
       text-align: left;
-      padding: 0.25em;
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 0.5em;
+      vertical-align: top;
     }
 
-    th:first-child,
     td:first-child {
-      padding-right: 4em;
+      word-break: keep-all;
+      width: 14rem;
+      padding-right: 1rem;
+    }
+
+    td:last-child {
+      word-break: break-all;
     }
 
     & > tbody > tr:nth-child(even) > th,
     & > tbody > tr:nth-child(even) > td {
       background-color: var(--color-settings-tr-hover);
     }
+  }
+
+  .category {
+    margin-right: 0.5rem;
+
+    label {
+      border: 2px solid transparent;
+      padding: 0.2rem 0.4rem;
+      .rounded-corners-tiny;
+    }
+  }
+
+  .category input[type="checkbox"]:checked + label {
+    border: 2px solid var(--color-categories-item-border-selected);
   }
 
   .name,
@@ -88,7 +136,6 @@
     padding: 0.7em;
 
     a {
-      display: block;
       color: var(--color-settings-return-font);
     }
 
@@ -116,7 +163,7 @@
   }
 }
 
-@media screen and (max-width: 80em) {
+@media screen and (max-width: @tablet) {
   .preferences_back {
     clear: both;
   }

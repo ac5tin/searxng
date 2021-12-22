@@ -10,14 +10,11 @@ from zlib import compress, decompress
 from urllib.parse import parse_qs, urlencode
 
 from searx import settings, autocomplete
-from searx.languages import language_codes as languages
 from searx.locales import LOCALE_NAMES
 from searx.webutils import VALID_LANGUAGE_CODE
 
 
 COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 5  # 5 years
-LANGUAGE_CODES = [l[0] for l in languages]
-LANGUAGE_CODES.append('all')
 DISABLED = 0
 ENABLED = 1
 DOI_RESOLVERS = list(settings['doi_resolvers'])
@@ -336,7 +333,7 @@ class Preferences:
             'language': SearchLanguageSetting(
                 settings['search']['default_lang'],
                 is_locked('language'),
-                choices=list(LANGUAGE_CODES) + ['']
+                choices=settings['search']['languages'] + ['']
             ),
             'locale': EnumStringSetting(
                 settings['ui']['default_locale'],
@@ -396,7 +393,13 @@ class Preferences:
             'oscar-style': EnumStringSetting(
                 settings['ui']['theme_args']['oscar_style'],
                 is_locked('oscar-style'),
-                choices=['', 'logicodev', 'logicodev-dark', 'pointhi']),
+                choices=['', 'logicodev', 'logicodev-dark', 'pointhi']
+            ),
+            'simple_style': EnumStringSetting(
+                settings['ui']['theme_args']['simple_style'],
+                is_locked('simple_style'),
+                choices=['', 'auto', 'light', 'dark']
+            ),
             'advanced_search': MapSetting(
                 settings['ui']['advanced_search'],
                 is_locked('advanced_search'),
@@ -406,6 +409,17 @@ class Preferences:
                     'False': False,
                     'True': True,
                     'on': True,
+                }
+            ),
+            'query_in_title': MapSetting(
+                settings['ui']['query_in_title'],
+                is_locked('query_in_title'),
+                map={
+                    '': settings['ui']['query_in_title'],
+                    '0': False,
+                    '1': True,
+                    'True': True,
+                    'False': False
                 }
             ),
         }

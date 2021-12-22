@@ -179,7 +179,7 @@ $(document).ready(function(){
     /**
      * Layout images according to their sizes
      */
-    searxng.image_thumbnail_layout = new searxng.ImageLayout('#main_results', '#main_results .result-images', 'img.img-thumbnail', 15, 200);
+    searxng.image_thumbnail_layout = new searxng.ImageLayout('#main_results', '#main_results .result-images', 'img.img-thumbnail', 15, 3, 200);
     searxng.image_thumbnail_layout.watch();
 });
 ;/**
@@ -327,14 +327,26 @@ $(document).ready(function(){
 *
 * @license Free to use under the MIT License.
 *
+* @example <caption>Example usage of searxng.ImageLayout class.</caption>
+* searxng.image_thumbnail_layout = new searxng.ImageLayout(
+*     '#urls',                 // container_selector
+*     '#urls .result-images',  // results_selector
+*     'img.image_thumbnail',   // img_selector
+*     14,                      // verticalMargin
+*     6,                       // horizontalMargin
+*     200                      // maxHeight
+* );
+* searxng.image_thumbnail_layout.watch();
 */
 
+
 (function (w, d) {
-  function ImageLayout(container_selector, results_selector, img_selector, margin, maxHeight) {
+  function ImageLayout (container_selector, results_selector, img_selector, verticalMargin, horizontalMargin, maxHeight) {
     this.container_selector = container_selector;
     this.results_selector = results_selector;
     this.img_selector = img_selector;
-    this.margin = margin;
+    this.verticalMargin = verticalMargin;
+    this.horizontalMargin = horizontalMargin;
     this.maxHeight = maxHeight;
     this.isAlignDone = true;
   }
@@ -364,7 +376,7 @@ $(document).ready(function(){
       }
     }
 
-    return (width - images.length * this.margin) / r; //have to round down because Firefox will automatically roundup value with number of decimals > 3
+    return (width - images.length * this.verticalMargin) / r; // have to round down because Firefox will automatically roundup value with number of decimals > 3
   };
 
   ImageLayout.prototype._setSize = function (images, height) {
@@ -381,10 +393,10 @@ $(document).ready(function(){
       }
       img.style.width = imgWidth + 'px';
       img.style.height = height + 'px';
-      img.style.marginLeft = '3px';
-      img.style.marginTop = '3px';
-      img.style.marginRight = this.margin - 7 + 'px'; // -4 is the negative margin of the inline element
-      img.style.marginBottom = this.margin - 7 + 'px';
+      img.style.marginLeft = this.horizontalMargin + 'px';
+      img.style.marginTop = this.horizontalMargin + 'px';
+      img.style.marginRight = this.verticalMargin - 7 + 'px'; // -4 is the negative margin of the inline element
+      img.style.marginBottom = this.verticalMargin - 7 + 'px';
       resultNode = img.parentNode.parentNode;
       if (!resultNode.classList.contains('js')) {
         resultNode.classList.add('js');
@@ -454,7 +466,12 @@ $(document).ready(function(){
     var results_nodes = d.querySelectorAll(this.results_selector);
     var results_length = results_nodes.length;
 
-    function throttleAlign() {
+    function img_load_error (event) {
+      // console.log("ERROR can't load: " + event.originalTarget.src);
+      event.originalTarget.src = w.searxng.static_path + w.searxng.theme.img_load_error;
+    }
+
+    function throttleAlign () {
       if (obj.isAlignDone) {
         obj.isAlignDone = false;
         setTimeout(function () {
@@ -464,15 +481,22 @@ $(document).ready(function(){
       }
     }
 
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/pageshow_event
     w.addEventListener('pageshow', throttleAlign);
+    // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/load_event
     w.addEventListener('load', throttleAlign);
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event
     w.addEventListener('resize', throttleAlign);
 
     for (i = 0; i < results_length; i++) {
       img = results_nodes[i].querySelector(this.img_selector);
       if (img !== null && img !== undefined) {
         img.addEventListener('load', throttleAlign);
+        // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
         img.addEventListener('error', throttleAlign);
+        if (w.searxng.theme.img_load_error) {
+          img.addEventListener('error', img_load_error, {once: true});
+        }
       }
     }
   };

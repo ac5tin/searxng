@@ -183,7 +183,7 @@
                     {% set label = _('Engine tokens') %}
                     {% set info = _('Access tokens for private engines') %}
                     {{ preferences_item_header(info, label, rtl, 'tokens') }}
-                        <input class="form-control" id="tokens" name="tokens" value='{{ preferences.tokens.get_value() }}'/>
+                        <input class="form-control" id="tokens" name="tokens" value='{{ preferences.tokens.get_value() }}' autocomplete="off" spellcheck="false" autocorrect="off" />
                     {{ preferences_item_footer(info, label, rtl) }}
                 </div>
                 </fieldset>
@@ -278,6 +278,17 @@
                                 <option value="" {% if not image_proxy %}selected="selected"{% endif %}>{{ _('Disabled')}}</option>
                             </select>
                         {{ preferences_item_footer(image_proxy_info, image_proxy_label, rtl) }}
+                        {% endif %}
+
+                        {% if 'query_in_title' not in locked_preferences %}
+                        {% set query_in_title_label = _("Query in the page's title") %}
+                        {% set query_in_title_info = _("When enabled, the result page's title contains your query. Your browser can record this title") %}
+                        {{ preferences_item_header(query_in_title_info, query_in_title_label, rtl, 'query_in_title') }}
+                            <select class="form-control {{ custom_select_class(rtl) }}" name="query_in_title" id="query_in_title">
+                                <option value="1" {% if query_in_title  %}selected="selected"{% endif %}>{{ _('Enabled') }}</option>
+                                <option value="" {% if not query_in_title %}selected="selected"{% endif %}>{{ _('Disabled')}}</option>
+                            </select>
+                        {{ preferences_item_footer(query_in_title_info, query_in_title_label, rtl) }}
                         {% endif %}
 
                         {{ plugin_of_category('privacy' )}}
@@ -397,7 +408,7 @@
                     </thead>
                     <tbody>
                         <td></td>
-                        <th scope="colgroup" colspan="4">{{ _('This is the list of SearXNG\'s instant answering modules.') }}</th>
+                        <th scope="colgroup" colspan="4">{{ _("This is the list of SearXNG's instant answering modules.") }}</th>
                         {% for answerer in answerers %}
                         <tr>
                             <td></td>

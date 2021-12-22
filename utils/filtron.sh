@@ -4,6 +4,8 @@
 
 # shellcheck source=utils/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# shellcheck source=utils/lib_go.sh
+source "${REPO_ROOT}/utils/lib_go.sh"
 # shellcheck source=utils/lib_install.sh
 source "${REPO_ROOT}/utils/lib_install.sh"
 
@@ -42,11 +44,10 @@ SERVICE_GROUP="${SERVICE_USER}"
 SERVICE_GROUP="${SERVICE_USER}"
 
 GO_ENV="${SERVICE_HOME}/.go_env"
-GO_PKG_URL="https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz"
-GO_TAR=$(basename "$GO_PKG_URL")
+GO_VERSION="go1.17.2"
 
-APACHE_FILTRON_SITE="searx.conf"
-NGINX_FILTRON_SITE="searx.conf"
+APACHE_FILTRON_SITE="searxng.conf"
+NGINX_FILTRON_SITE="searxng.conf"
 
 # shellcheck disable=SC2034
 CONFIG_FILES=(
@@ -63,6 +64,7 @@ usage() {
 usage::
   $(basename "$0") shell
   $(basename "$0") install    [all|user|rules]
+  $(basename "$0") reinstall  all
   $(basename "$0") update     [filtron]
   $(basename "$0") remove     [all]
   $(basename "$0") activate   [service]
@@ -78,6 +80,10 @@ install / remove
   :all:        complete setup of filtron service
   :user:       add/remove service user '$SERVICE_USER' ($SERVICE_HOME)
   :rules:      reinstall filtron rules $FILTRON_RULES
+install
+  :check:      check the filtron installation
+reinstall:
+  :all:        runs 'install/remove all'
 update filtron
   Update filtron installation ($SERVICE_HOME)
 activate service
@@ -131,10 +137,24 @@ main() {
                     ;;
                 *) usage "$_usage"; exit 42;;
             esac ;;
+        reinstall)
+            rst_title "re-install $SERVICE_NAME" part
+            sudo_or_exit
+            case $2 in
+                all)
+                    remove_all
+                    install_all
+                    ;;
+                *) usage "$_usage"; exit 42;;
+            esac ;;
         install)
             rst_title "$SERVICE_NAME" part
             sudo_or_exit
             case $2 in
+                check)
+                    rst_title "Check filtron installation" part
+                    install_check
+                    ;;
                 all) install_all ;;
                 user) assert_user ;;
                 rules)
@@ -198,7 +218,7 @@ install_all() {
     rst_title "Install $SERVICE_NAME (service)"
     assert_user
     wait_key
-    install_go "${GO_PKG_URL}" "${GO_TAR}" "${SERVICE_USER}"
+    go.golang "${GO_VERSION}" "${SERVICE_USER}"
     wait_key
     install_filtron
     install_rules
@@ -224,6 +244,64 @@ install_all() {
         inspect_service
     fi
 
+}
+
+install_check() {
+
+    if service_account_is_available "$SERVICE_USER"; then
+        info_msg "service account $SERVICE_USER available."
+    else
+        err_msg "service account $SERVICE_USER not available!"
+    fi
+    if go_is_available "$SERVICE_USER"; then
+        info_msg "~$SERVICE_USER: go is installed"
+    else
+        err_msg "~$SERVICE_USER: go is not installed"
+    fi
+    if filtron_is_installed; then
+        info_msg "~$SERVICE_USER: filtron app is installed"
+    else
+        err_msg "~$SERVICE_USER: filtron app is not installed!"
+    fi
+
+    if ! service_is_available "http://${FILTRON_API}"; then
+        err_msg "API not available at: http://${FILTRON_API}"
+    fi
+
+    if ! service_is_available "http://${FILTRON_LISTEN}" ; then
+        err_msg "Filtron is not listening on: http://${FILTRON_LISTEN}"
+    fi
+
+    if service_is_available "http://${FILTRON_TARGET}" ; then
+        info_msg "Filtron's target is available at: http://${FILTRON_TARGET}"
+    fi
+
+    if ! service_is_available "${PUBLIC_URL}"; then
+        warn_msg "Public service at ${PUBLIC_URL} is not available!"
+        if ! in_container; then
+            warn_msg "Check if public name is correct and routed or use the public IP from above."
+        fi
+    fi
+
+    if [[ "${GO_VERSION}" > "$(go_version)" ]]; then
+        warn_msg "golang ($(go_version)) needs to be $GO_VERSION at least"
+        warn_msg "you need to reinstall $SERVICE_USER --> $0 reinstall all"
+    else
+        info_msg "golang $(go_version) is installed (min needed is: $GO_VERSION)"
+    fi
+
+    if [ -f "${APACHE_SITES_AVAILABLE}/searx.conf" ]; then
+        warn_msg "old searx.conf apache site exists"
+    fi
+
+    if [ -f "${NGINX_APPS_AVAILABLE}/searx.conf" ]; then
+        warn_msg "old searx.conf nginx site exists"
+    fi
+
+}
+
+go_version(){
+    go.version "${SERVICE_USER}"
 }
 
 remove_all() {
@@ -258,14 +336,9 @@ EOF
     export SERVICE_HOME
     echo "export SERVICE_HOME=$SERVICE_HOME"
 
-    cat > "$GO_ENV" <<EOF
-export GOPATH=\$HOME/go-apps
-export PATH=\$PATH:\$HOME/local/go/bin:\$GOPATH/bin
-EOF
-    echo "Environment $GO_ENV has been setup."
-
     tee_stderr <<EOF | sudo -i -u "$SERVICE_USER"
-grep -qFs -- 'source $GO_ENV' ~/.profile || echo 'source $GO_ENV' >> ~/.profile
+touch "$GO_ENV"
+grep -qFs -- 'source "$GO_ENV"' ~/.profile || echo 'source "$GO_ENV"' >> ~/.profile
 EOF
 }
 
@@ -273,22 +346,16 @@ filtron_is_installed() {
     [[ -f $SERVICE_HOME/go-apps/bin/filtron ]]
 }
 
-_svcpr="  ${_Yellow}|${SERVICE_USER}|${_creset} "
-
 install_filtron() {
     rst_title "Install filtron in user's ~/go-apps" section
     echo
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-go get -v -u github.com/asciimoo/filtron
-EOF
+    go.install github.com/searxng/filtron@latest "${SERVICE_USER}"
 }
 
 update_filtron() {
     rst_title "Update filtron" section
     echo
-    tee_stderr <<EOF | sudo -i -u "$SERVICE_USER" 2>&1 | prefix_stdout "$_svcpr"
-go get -v -u github.com/asciimoo/filtron
-EOF
+    go.install github.com/searxng/filtron@latest "${SERVICE_USER}"
 }
 
 install_rules() {
@@ -354,40 +421,7 @@ sourced ${DOT_CONFIG} :
 EOF
     install_log_searx_instance
 
-    if service_account_is_available "$SERVICE_USER"; then
-        info_msg "service account $SERVICE_USER available."
-    else
-        err_msg "service account $SERVICE_USER not available!"
-    fi
-    if go_is_available "$SERVICE_USER"; then
-        info_msg "~$SERVICE_USER: go is installed"
-    else
-        err_msg "~$SERVICE_USER: go is not installed"
-    fi
-    if filtron_is_installed; then
-        info_msg "~$SERVICE_USER: filtron app is installed"
-    else
-        err_msg "~$SERVICE_USER: filtron app is not installed!"
-    fi
-
-    if ! service_is_available "http://${FILTRON_API}"; then
-        err_msg "API not available at: http://${FILTRON_API}"
-    fi
-
-    if ! service_is_available "http://${FILTRON_LISTEN}" ; then
-        err_msg "Filtron is not listening on: http://${FILTRON_LISTEN}"
-    fi
-
-    if service_is_available "http://${FILTRON_TARGET}" ; then
-        info_msg "Filtron's target is available at: http://${FILTRON_TARGET}"
-    fi
-
-    if ! service_is_available "${PUBLIC_URL}"; then
-        warn_msg "Public service at ${PUBLIC_URL} is not available!"
-        if ! in_container; then
-            warn_msg "Check if public name is correct and routed or use the public IP from above."
-        fi
-    fi
+    install_check
 
     if in_container; then
         lxc_suite_info
@@ -537,7 +571,7 @@ This installs a reverse proxy (ProxyPass) into nginx site (${NGINX_FILTRON_SITE}
     # shellcheck disable=SC2034
     SEARX_SRC=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARX_SRC)
     # shellcheck disable=SC2034
-    SEARX_URL_PATH=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARX_URL_PATH)
+    SEARXNG_URL_PATH=$("${REPO_ROOT}/utils/searx.sh" --getenv SEARXNG_URL_PATH)
     nginx_install_app --variant=filtron "${NGINX_FILTRON_SITE}"
 
     info_msg "testing public url .."
