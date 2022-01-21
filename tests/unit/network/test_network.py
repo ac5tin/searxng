@@ -9,7 +9,6 @@ from tests import SearxTestCase
 
 
 class TestNetwork(SearxTestCase):
-
     def setUp(self):
         initialize()
 
@@ -51,23 +50,23 @@ class TestNetwork(SearxTestCase):
         network = Network(proxies='http://localhost:1337')
         self.assertEqual(next(network._proxies_cycle), (('all://', 'http://localhost:1337'),))
 
-        network = Network(proxies={
-            'https': 'http://localhost:1337',
-            'http': 'http://localhost:1338'
-        })
-        self.assertEqual(next(network._proxies_cycle),
-                         (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338')))
-        self.assertEqual(next(network._proxies_cycle),
-                         (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338')))
+        network = Network(proxies={'https': 'http://localhost:1337', 'http': 'http://localhost:1338'})
+        self.assertEqual(
+            next(network._proxies_cycle), (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338'))
+        )
+        self.assertEqual(
+            next(network._proxies_cycle), (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338'))
+        )
 
-        network = Network(proxies={
-            'https': ['http://localhost:1337', 'http://localhost:1339'],
-            'http': 'http://localhost:1338'
-        })
-        self.assertEqual(next(network._proxies_cycle),
-                         (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338')))
-        self.assertEqual(next(network._proxies_cycle),
-                         (('https://', 'http://localhost:1339'), ('http://', 'http://localhost:1338')))
+        network = Network(
+            proxies={'https': ['http://localhost:1337', 'http://localhost:1339'], 'http': 'http://localhost:1338'}
+        )
+        self.assertEqual(
+            next(network._proxies_cycle), (('https://', 'http://localhost:1337'), ('http://', 'http://localhost:1338'))
+        )
+        self.assertEqual(
+            next(network._proxies_cycle), (('https://', 'http://localhost:1339'), ('http://', 'http://localhost:1338'))
+        )
 
         with self.assertRaises(ValueError):
             Network(proxies=1)
@@ -77,13 +76,15 @@ class TestNetwork(SearxTestCase):
             'verify': True,
             'max_redirects': 5,
             'timeout': 2,
+            'allow_redirects': True,
         }
-        kwargs_client = Network.get_kwargs_clients(kwargs)
+        kwargs_client = Network.extract_kwargs_clients(kwargs)
 
         self.assertEqual(len(kwargs_client), 2)
-        self.assertEqual(len(kwargs), 1)
+        self.assertEqual(len(kwargs), 2)
 
         self.assertEqual(kwargs['timeout'], 2)
+        self.assertEqual(kwargs['follow_redirects'], True)
 
         self.assertTrue(kwargs_client['verify'])
         self.assertEqual(kwargs_client['max_redirects'], 5)
@@ -134,6 +135,7 @@ class TestNetworkRequestRetries(SearxTestCase):
                 first = False
                 return httpx.Response(status_code=403, text=TestNetworkRequestRetries.TEXT)
             return httpx.Response(status_code=200, text=TestNetworkRequestRetries.TEXT)
+
         return get_response
 
     async def test_retries_ok(self):
@@ -206,6 +208,7 @@ class TestNetworkStreamRetries(SearxTestCase):
                 first = False
                 raise httpx.RequestError('fake exception', request=None)
             return httpx.Response(status_code=200, text=TestNetworkStreamRetries.TEXT)
+
         return stream
 
     async def test_retries_ok(self):

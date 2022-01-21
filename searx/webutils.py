@@ -5,11 +5,14 @@ import hashlib
 import hmac
 import re
 import inspect
+import itertools
+from typing import Iterable, List, Tuple
 
 from io import StringIO
 from codecs import getincrementalencoder
 
-from searx import logger
+from searx import logger, settings
+from searx.engines import Engine, OTHER_CATEGORY
 
 
 VALID_LANGUAGE_CODE = re.compile(r'^[a-z]{2,3}(-[a-zA-Z]{2})?$')
@@ -77,14 +80,12 @@ def get_result_templates(templates_path):
 
 
 def new_hmac(secret_key, url):
-    try:
-        secret_key_bytes = bytes(secret_key, 'utf-8')
-    except TypeError as err:
-        if isinstance(secret_key, bytes):
-            secret_key_bytes = secret_key
-        else:
-            raise err
-    return hmac.new(secret_key_bytes, url, hashlib.sha256).hexdigest()
+    return hmac.new(secret_key.encode(), url, hashlib.sha256).hexdigest()
+
+
+def is_hmac_of(secret_key, value, hmac_to_check):
+    hmac_of_value = new_hmac(secret_key, value)
+    return len(hmac_of_value) == len(hmac_to_check) and hmac.compare_digest(hmac_of_value, hmac_to_check)
 
 
 def prettify_url(url, max_length=74):
@@ -106,8 +107,7 @@ def highlight_content(content, query):
 
     if content.lower().find(query.lower()) > -1:
         query_regex = '({0})'.format(re.escape(query))
-        content = re.sub(query_regex, '<span class="highlight">\\1</span>',
-                         content, flags=re.I | re.U)
+        content = re.sub(query_regex, '<span class="highlight">\\1</span>', content, flags=re.I | re.U)
     else:
         regex_parts = []
         for chunk in query.split():
@@ -119,8 +119,7 @@ def highlight_content(content, query):
             else:
                 regex_parts.append('{0}'.format(re.escape(chunk)))
         query_regex = '({0})'.format('|'.join(regex_parts))
-        content = re.sub(query_regex, '<span class="highlight">\\1</span>',
-                         content, flags=re.I | re.U)
+        content = re.sub(query_regex, '<span class="highlight">\\1</span>', content, flags=re.I | re.U)
 
     return content
 
@@ -138,3 +137,28 @@ def is_flask_run_cmdline():
     if len(frames) < 2:
         return False
     return frames[-2].filename.endswith('flask/cli.py')
+
+
+DEFAULT_GROUP_NAME = 'others'
+
+
+def group_engines_in_tab(engines: Iterable[Engine]) -> List[Tuple[str, Iterable[Engine]]]:
+    """Groups an Iterable of engines by their first non tab category"""
+
+    def get_group(eng):
+        non_tab_categories = [
+            c for c in eng.categories if c not in list(settings['categories_as_tabs'].keys()) + [OTHER_CATEGORY]
+        ]
+        return non_tab_categories[0] if len(non_tab_categories) > 0 else DEFAULT_GROUP_NAME
+
+    groups = itertools.groupby(sorted(engines, key=get_group), get_group)
+
+    def group_sort_key(group):
+        return (group[0] == DEFAULT_GROUP_NAME, group[0].lower())
+
+    sorted_groups = sorted(((name, list(engines)) for name, engines in groups), key=group_sort_key)
+
+    def engine_sort_key(engine):
+        return (engine.about.get('language', ''), engine.name)
+
+    return [(groupname, sorted(engines, key=engine_sort_key)) for groupname, engines in sorted_groups]

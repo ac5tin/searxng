@@ -24,13 +24,13 @@ from searx.search.checker import initialize as initialize_checker
 logger = logger.getChild('search')
 
 
-def initialize(settings_engines=None, enable_checker=False, check_network=False):
+def initialize(settings_engines=None, enable_checker=False, check_network=False, enable_metrics=True):
     settings_engines = settings_engines or settings['engines']
     load_engines(settings_engines)
     initialize_network(settings_engines, settings['outgoing'])
     if check_network:
         check_network_configuration()
-    initialize_metrics([engine['name'] for engine in settings_engines])
+    initialize_metrics([engine['name'] for engine in settings_engines], enable_metrics)
     initialize_processors(settings_engines)
     if enable_checker:
         initialize_checker()
@@ -123,8 +123,11 @@ class Search:
             # Max & user query: From user query except if above max
             actual_timeout = min(query_timeout, max_request_timeout)
 
-        logger.debug("actual_timeout={0} (default_timeout={1}, ?timeout_limit={2}, max_request_timeout={3})"
-                     .format(actual_timeout, default_timeout, query_timeout, max_request_timeout))
+        logger.debug(
+            "actual_timeout={0} (default_timeout={1}, ?timeout_limit={2}, max_request_timeout={3})".format(
+                actual_timeout, default_timeout, query_timeout, max_request_timeout
+            )
+        )
 
         return requests, actual_timeout
 

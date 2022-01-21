@@ -25,11 +25,7 @@ help:
 
 PHONY += run
 run:  install
-	$(Q) ( \
-	sleep 2 ; \
-	xdg-open http://127.0.0.1:8888/ ; \
-	) &
-	SEARXNG_DEBUG=1 ./manage pyenv.cmd python -m searx.webapp
+	$(Q)./manage webapp.run
 
 PHONY += install uninstall
 install uninstall:
@@ -54,8 +50,8 @@ search.checker.%: install
 	$(Q)./manage pyenv.cmd searx-checker -v "$(subst _, ,$(patsubst search.checker.%,%,$@))"
 
 PHONY += test ci.test test.shell
-ci.test: test.yamllint test.pep8 test.pylint test.unit test.robot
-test:    test.yamllint test.pep8 test.pylint test.unit test.robot test.shell
+ci.test: test.yamllint test.black test.pylint test.unit test.robot test.rst
+test:    test.yamllint test.black test.pylint test.unit test.robot test.rst test.shell
 test.shell:
 	$(Q)shellcheck -x -s dash \
 		dockerfiles/docker-entrypoint.sh
@@ -67,12 +63,13 @@ test.shell:
 		utils/lib_nvm.sh \
 		utils/lib_static.sh \
 		utils/lib_go.sh \
-	        utils/filtron.sh \
-	        utils/searx.sh \
-	        utils/morty.sh \
-	        utils/lxc.sh \
-	        utils/lxc-searx.env \
-	        .config.sh
+		utils/lib_redis.sh \
+		utils/filtron.sh \
+		utils/searx.sh \
+		utils/morty.sh \
+		utils/lxc.sh \
+		utils/lxc-searx.env \
+		.config.sh
 	$(Q)$(MTOOLS) build_msg TEST "$@ OK"
 
 
@@ -88,7 +85,8 @@ MANAGE += node.env node.clean
 MANAGE += py.build py.clean
 MANAGE += pyenv pyenv.install pyenv.uninstall
 MANAGE += pypi.upload pypi.upload.test
-MANAGE += test.yamllint test.pylint test.pep8 test.unit test.coverage test.robot test.clean
+MANAGE += format.python
+MANAGE += test.yamllint test.pylint test.black test.unit test.coverage test.robot test.rst test.clean
 MANAGE += themes.all themes.oscar themes.simple themes.simple.test pygments.less
 MANAGE += static.build.commit static.build.drop static.build.restore
 MANAGE += nvm.install nvm.clean nvm.status nvm.nodejs

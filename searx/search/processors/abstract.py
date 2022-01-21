@@ -8,6 +8,7 @@
 import threading
 from abc import abstractmethod, ABC
 from timeit import default_timer
+from typing import Dict, Union
 
 from searx import settings, logger
 from searx.engines import engines
@@ -17,7 +18,8 @@ from searx.exceptions import SearxEngineAccessDeniedException, SearxEngineRespon
 from searx.utils import get_engine_from_settings
 
 logger = logger.getChild('searx.search.processor')
-SUSPENDED_STATUS = {}
+SUSPENDED_STATUS: Dict[Union[int, str], 'SuspendedStatus'] = {}
+
 
 class SuspendedStatus:
     """Class to handle suspend state."""
@@ -39,8 +41,10 @@ class SuspendedStatus:
             # update continuous_errors / suspend_end_time
             self.continuous_errors += 1
             if suspended_time is None:
-                suspended_time = min(settings['search']['max_ban_time_on_fail'],
-                                     self.continuous_errors * settings['search']['ban_time_on_fail'])
+                suspended_time = min(
+                    settings['search']['max_ban_time_on_fail'],
+                    self.continuous_errors * settings['search']['ban_time_on_fail'],
+                )
             self.suspend_end_time = default_timer() + suspended_time
             self.suspend_reason = suspend_reason
             logger.debug('Suspend for %i seconds', suspended_time)
@@ -58,7 +62,7 @@ class EngineProcessor(ABC):
 
     __slots__ = 'engine', 'engine_name', 'lock', 'suspended_status', 'logger'
 
-    def __init__(self, engine, engine_name):
+    def __init__(self, engine, engine_name: str):
         self.engine = engine
         self.engine_name = engine_name
         self.logger = engines[engine_name].logger
@@ -127,9 +131,9 @@ class EngineProcessor(ABC):
 
     def extend_container_if_suspended(self, result_container):
         if self.suspended_status.is_suspended:
-            result_container.add_unresponsive_engine(self.engine_name,
-                                                     self.suspended_status.suspend_reason,
-                                                     suspended=True)
+            result_container.add_unresponsive_engine(
+                self.engine_name, self.suspended_status.suspend_reason, suspended=True
+            )
             return True
         return False
 

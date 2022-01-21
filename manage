@@ -17,13 +17,18 @@ source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_static.sh"
 # shellcheck source=utils/lib_go.sh
 source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_go.sh"
 
+# shellcheck source=utils/lib_redis.sh
+source "$(dirname "${BASH_SOURCE[0]}")/utils/lib_redis.sh"
+
 # config
 
 PYOBJECTS="searx"
 PY_SETUP_EXTRAS='[test]'
-GECKODRIVER_VERSION="v0.28.0"
+GECKODRIVER_VERSION="v0.30.0"
 export NODE_MINIMUM_VERSION="16.13.0"
 # SPHINXOPTS=
+BLACK_OPTIONS=("--target-version" "py37" "--line-length" "120" "--skip-string-normalization")
+BLACK_TARGETS=("--exclude" "searx/static,searx/languages.py" "searx" "searxng_extra" "tests")
 
 pylint.FILES() {
 
@@ -31,8 +36,7 @@ pylint.FILES() {
     #
     #   # lint: pylint
     #
-    # These py files are linted by test.pylint(), all other files are linted by
-    # test.pep8()
+    # These py files are linted by test.pylint()
 
     grep -l -r --include \*.py '^#[[:blank:]]*lint:[[:blank:]]*pylint' searx searxng_extra tests
 }
@@ -41,6 +45,10 @@ YAMLLINT_FILES=()
 while IFS= read -r line; do
    YAMLLINT_FILES+=("$line")
 done <<< "$(git ls-files './tests/*.yml' './searx/*.yml' './utils/templates/etc/searxng/*.yml')"
+
+RST_FILES=(
+    'README.rst'
+)
 
 PYLINT_SEARXNG_DISABLE_OPTION="\
 I,C,R,\
@@ -73,9 +81,10 @@ docker.:
 gecko.driver:
   download & install geckodriver if not already installed (required for
   robot_tests)
-EOF
-    nvm.help
-    cat <<EOF
+redis:
+  build     : build redis binaries at $(redis._get_dist)
+  install   : create user (${REDIS_USER}) and install systemd service (${REDIS_SERVICE_NAME})
+  help      : show more redis commands
 node.:
   env       : download & install npm dependencies locally
   clean     : drop locally npm installations
@@ -89,13 +98,16 @@ pyenv.:
   OK        : test if virtualenv is OK
 pypi.upload:
   Upload python packages to PyPi (to test use pypi.upload.test)
+format.:
+  python    : format Python code source using black
 test.:
   yamllint  : lint YAML files (YAMLLINT_FILES)
   pylint    : lint PYLINT_FILES, searx/engines, searx & tests
-  pep8      : pycodestyle (pep8) for all files except PYLINT_FILES
+  black     : check black code format
   unit      : run unit tests
   coverage  : run unit tests with coverage
   robot     : run robot test
+  rst       : test .rst files incl. README.rst
   clean     : clean intermediate test stuff
 themes.:
   all       : build all themes
@@ -116,6 +128,21 @@ fi
 
 # needed by sphinx-docs
 export DOCS_BUILD
+
+webapp.run() {
+    local parent_proc="$$"
+    (
+        if [ "${LIVE_THEME}" ]; then
+            ( themes.live "${LIVE_THEME}" )
+            kill $parent_proc
+        fi
+    )&
+    (
+        sleep 3
+        xdg-open http://127.0.0.1:8888/
+    )&
+    SEARXNG_DEBUG=1 pyenv.cmd python -m searx.webapp
+}
 
 buildenv() {
 
@@ -485,10 +512,9 @@ gecko.driver() {
     (   set -e
         pyenv.activate
 
-        # TODO : check the current geckodriver version
-        geckodriver -V > /dev/null 2>&1 || NOTFOUND=1
+        INSTALLED_VERSION=$(geckodriver -V 2> /dev/null | head -1 | awk '{ print "v" $2}') || INSTALLED_VERSION=""
         set +e
-        if [ -z "$NOTFOUND" ]; then
+        if [ "${INSTALLED_VERSION}" = "${GECKODRIVER_VERSION}" ]; then
             build_msg INSTALL "geckodriver already installed"
             return
         fi
@@ -512,12 +538,15 @@ gecko.driver() {
     dump_return $?
 }
 
-node.env() {
+nodejs.ensure() {
     if ! nvm.min_node "${NODE_MINIMUM_VERSION}"; then
         info_msg "install Node.js by NVM"
         nvm.nodejs
     fi
+}
 
+node.env() {
+    nodejs.ensure
     (   set -e
 
         build_msg INSTALL "searx/static/themes/oscar/package.json"
@@ -618,6 +647,12 @@ pypi.upload.test() {
     pyenv.cmd twine upload -r testpypi "${PYDIST}"/*
 }
 
+format.python() {
+    build_msg TEST "[format.python] black \$BLACK_TARGETS"
+    pyenv.cmd black "${BLACK_OPTIONS[@]}" "${BLACK_TARGETS[@]}"
+    dump_return $?
+}
+
 test.yamllint() {
     build_msg TEST "[yamllint] \$YAMLLINT_FILES"
     pyenv.cmd yamllint --format parsable "${YAMLLINT_FILES[@]}"
@@ -647,15 +682,9 @@ test.pylint() {
     dump_return $?
 }
 
-test.pep8() {
-    build_msg TEST 'pycodestyle (formerly pep8)'
-    local _exclude=""
-    printf -v _exclude '%s, ' "${PYLINT_FILES[@]}"
-    pyenv.cmd pycodestyle \
-              --exclude="searx/static, searx/languages.py, $_exclude " \
-              --max-line-length=120 \
-              --ignore "E117,E252,E402,E722,E741,W503,W504,W605" \
-              searx tests
+test.black() {
+    build_msg TEST "[black] \$BLACK_TARGETS"
+    pyenv.cmd black --check --diff "${BLACK_OPTIONS[@]}" "${BLACK_TARGETS[@]}"
     dump_return $?
 }
 
@@ -683,6 +712,13 @@ test.robot() {
     dump_return $?
 }
 
+test.rst() {
+    build_msg TEST "[reST markup] ${RST_FILES[*]}"
+    for rst in "${RST_FILES[@]}"; do
+        pyenv.cmd rst2html.py --halt error "$rst" > /dev/null || die 42 "fix issue in $rst"
+    done
+}
+
 test.clean() {
     build_msg CLEAN  "test stuff"
     rm -rf geckodriver.log .coverage coverage/
@@ -699,6 +735,30 @@ themes.all() {
     dump_return $?
 }
 
+themes.live() {
+    local LIVE_THEME="${LIVE_THEME:-${1}}"
+    case "${LIVE_THEME}" in
+        simple|oscar)
+            theme="searx/static/themes/${LIVE_THEME}"
+            ;;
+        '')
+            die_caller 42 "missing theme argument"
+            ;;
+        *)
+            die_caller 42 "unknown theme '${LIVE_THEME}' // [simple|oscar]'"
+            ;;
+    esac
+    build_msg GRUNT "theme: $1 (live build)"
+    nodejs.ensure
+    cd "${theme}"
+    {
+        npm install
+        npm run watch
+    } 2>&1 \
+        | prefix_stdout "${_Blue}THEME ${1} ${_creset}  " \
+        | grep -E --ignore-case --color 'error[s]?[:]? |warning[s]?[:]? |'
+}
+
 themes.oscar() {
     build_msg GRUNT "theme: oscar"
     npm --prefix searx/static/themes/oscar run build
@@ -706,7 +766,6 @@ themes.oscar() {
 }
 
 themes.simple() {
-    local static="searx/static/themes/simple"
     (   set -e
         build_msg GRUNT "theme: simple"
         npm --prefix searx/static/themes/simple run build
@@ -716,10 +775,7 @@ themes.simple() {
 
 themes.simple.test() {
     build_msg TEST "theme: simple"
-    if ! nvm.min_node "${NODE_MINIMUM_VERSION}"; then
-        info_msg "install Node.js by NVM"
-        nvm.nodejs
-    fi
+    nodejs.ensure
     npm --prefix searx/static/themes/simple install
     npm --prefix searx/static/themes/simple run test
     dump_return $?
