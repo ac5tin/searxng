@@ -1,13 +1,22 @@
 #!/usr/bin/env python
+# lint: pylint
 # SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""Fetch currencies from :origin:`searx/engines/wikidata.py` engine.
+
+Output file: :origin:`searx/data/currencies.json` (:origin:`CI Update data ...
+<.github/workflows/data-update.yml>`).
+
+"""
+
+# pylint: disable=invalid-name
 
 import re
 import unicodedata
 import json
 
 # set path
-from sys import path
-from os.path import realpath, dirname, join
+from os.path import join
 
 from searx import searx_dir
 from searx.locales import LOCALE_NAMES
@@ -85,9 +94,7 @@ def add_currency_label(db, label, iso4217, language):
 
 
 def wikidata_request_result_iterator(request):
-    result = wikidata.send_wikidata_query(
-        request.replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL)
-    )
+    result = wikidata.send_wikidata_query(request.replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL))
     if result is not None:
         for r in result['results']['bindings']:
             yield r
@@ -150,6 +157,7 @@ def main():
 
     with open(get_filename(), 'w', encoding='utf8') as f:
         json.dump(db, f, ensure_ascii=False, indent=4)
+
 
 if __name__ == '__main__':
     main()

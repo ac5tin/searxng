@@ -1,5 +1,15 @@
 #!/usr/bin/env python
+# lint: pylint
 # SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""Fetch website description from websites and from
+:origin:`searx/engines/wikidata.py` engine.
+
+Output file: :origin:`searx/data/engine_descriptions.json`.
+
+"""
+
+# pylint: disable=invalid-name, global-statement
 
 import json
 from urllib.parse import urlparse
@@ -55,7 +65,10 @@ NOT_A_DESCRIPTION = [
 ]
 
 SKIP_ENGINE_SOURCE = [
-    ('gitlab', 'wikidata')  # descriptions are about wikipedia disambiguation pages
+    # fmt: off
+    ('gitlab', 'wikidata')
+    # descriptions are about wikipedia disambiguation pages
+    # fmt: on
 ]
 
 LANGUAGES = LOCALE_NAMES.keys()
@@ -92,17 +105,14 @@ def update_description(engine_name, lang, description, source, replace=True):
 
 
 def get_wikipedia_summary(lang, pageid):
-    params = {
-        'language': lang.replace('_','-'),
-        'headers': {}
-    }
+    params = {'language': lang.replace('_', '-'), 'headers': {}}
     searx.engines.engines['wikipedia'].request(pageid, params)
     try:
         response = searx.network.get(params['url'], headers=params['headers'], timeout=10)
         response.raise_for_status()
         api_result = json.loads(response.text)
         return api_result.get('extract')
-    except:
+    except Exception:  # pylint: disable=broad-except
         return None
 
 
@@ -134,7 +144,7 @@ def get_website_description(url, lang1, lang2=None):
     try:
         response = searx.network.get(url, headers=headers, timeout=10)
         response.raise_for_status()
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return (None, None)
 
     try:
@@ -160,10 +170,7 @@ def initialize():
     global IDS, WIKIPEDIA_LANGUAGES, LANGUAGES_SPARQL
     searx.search.initialize()
     wikipedia_engine = searx.engines.engines['wikipedia']
-    WIKIPEDIA_LANGUAGES = {
-        language: wikipedia_engine.url_lang(language.replace('_', '-'))
-        for language in LANGUAGES
-    }
+    WIKIPEDIA_LANGUAGES = {language: wikipedia_engine.url_lang(language.replace('_', '-')) for language in LANGUAGES}
     WIKIPEDIA_LANGUAGES['nb_NO'] = 'no'
     LANGUAGES_SPARQL = ', '.join(f"'{l}'" for l in set(WIKIPEDIA_LANGUAGES.values()))
     for engine_name, engine in searx.engines.engines.items():
@@ -178,9 +185,7 @@ def initialize():
 def fetch_wikidata_descriptions():
     searx.network.set_timeout_for_thread(60)
     result = wikidata.send_wikidata_query(
-        SPARQL_DESCRIPTION
-        .replace('%IDS%', IDS)
-        .replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL)
+        SPARQL_DESCRIPTION.replace('%IDS%', IDS).replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL)
     )
     if result is not None:
         for binding in result['results']['bindings']:
@@ -195,9 +200,7 @@ def fetch_wikidata_descriptions():
 
 def fetch_wikipedia_descriptions():
     result = wikidata.send_wikidata_query(
-        SPARQL_WIKIPEDIA_ARTICLE
-        .replace('%IDS%', IDS)
-        .replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL)
+        SPARQL_WIKIPEDIA_ARTICLE.replace('%IDS%', IDS).replace('%LANGUAGES_SPARQL%', LANGUAGES_SPARQL)
     )
     if result is not None:
         for binding in result['results']['bindings']:
@@ -224,9 +227,9 @@ def fetch_website_description(engine_name, website):
         # the front page can't be fetched: skip this engine
         return
 
-    wikipedia_languages_r = { V: K for K, V in WIKIPEDIA_LANGUAGES.items() }
+    wikipedia_languages_r = {V: K for K, V in WIKIPEDIA_LANGUAGES.items()}
     languages = ['en', 'es', 'pt', 'ru', 'tr', 'fr']
-    languages = languages + [ l for l in LANGUAGES if l not in languages]
+    languages = languages + [l for l in LANGUAGES if l not in languages]
 
     previous_matched_lang = None
     previous_count = 0
@@ -279,9 +282,7 @@ def get_output():
        * description (if source = "wikipedia")
        * [f"engine:lang", "ref"] (reference to another existing description)
     """
-    output = {
-        locale: {} for locale in LOCALE_NAMES
-    }
+    output = {locale: {} for locale in LOCALE_NAMES}
 
     seen_descriptions = {}
 

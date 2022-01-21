@@ -18,6 +18,7 @@ with open('requirements-dev.txt') as f:
 
 setup(
     name='searxng',
+    python_requires=">=3.7",
     version=VERSION_TAG,
     description="A privacy-respecting, hackable metasearch engine",
     long_description=long_description,
@@ -35,8 +36,8 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3'
     ],
     keywords='metasearch searchengine search web http',
-    author='Adam Tauber',
-    author_email='asciimoo@gmail.com',
+    author='SearXNG dev team',
+    author_email='contact@searxng.org',
     license='GNU Affero General Public License',
     packages=find_packages(exclude=["tests*", "searxng_extra"]),
     zip_safe=False,

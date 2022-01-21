@@ -20,18 +20,18 @@ OUTPUT_FORMATS = ['html', 'csv', 'json', 'rss']
 LANGUAGE_CODES = ['all'] + list(l[0] for l in languages)
 OSCAR_STYLE = ('logicodev', 'logicodev-dark', 'pointhi')
 SIMPLE_STYLE = ('auto', 'light', 'dark')
-CATEGORY_ORDER = [
-    'general',
-    'images',
-    'videos',
-    'news',
-    'map',
-    'music',
-    'it',
-    'science',
-    'files',
-    'social media',
-]
+CATEGORIES_AS_TABS = {
+    'general': {},
+    'images': {},
+    'videos': {},
+    'news': {},
+    'map': {},
+    'music': {},
+    'it': {},
+    'science': {},
+    'files': {},
+    'social media': {},
+}
 STR_TO_BOOL = {
     '0': False,
     'false': False,
@@ -53,29 +53,24 @@ SEARX_ENVIRON_VARIABLES = {
 }
 
 
-
 class SettingsValue:
-    """Check and update a setting value
-    """
+    """Check and update a setting value"""
 
-    def __init__(self,
-                 type_definition: typing.Union[None, typing.Any, typing.Tuple[typing.Any]]=None,
-                 default: typing.Any=None,
-                 environ_name: str=None):
+    def __init__(
+        self,
+        type_definition: typing.Union[None, typing.Any, typing.Tuple[typing.Any]] = None,
+        default: typing.Any = None,
+        environ_name: str = None,
+    ):
         self.type_definition = (
-            type_definition
-            if type_definition is None or isinstance(type_definition, tuple)
-            else (type_definition,)
+            type_definition if type_definition is None or isinstance(type_definition, tuple) else (type_definition,)
         )
         self.default = default
         self.environ_name = environ_name
 
     @property
     def type_definition_repr(self):
-        types_str = [
-            t.__name__ if isinstance(t, type) else repr(t)
-            for t in self.type_definition
-        ]
+        types_str = [t.__name__ if isinstance(t, type) else repr(t) for t in self.type_definition]
         return ', '.join(types_str)
 
     def check_type_definition(self, value: typing.Any) -> None:
@@ -83,9 +78,7 @@ class SettingsValue:
             return
         type_list = tuple(t for t in self.type_definition if isinstance(t, type))
         if not isinstance(value, type_list):
-            raise ValueError(
-                'The value has to be one of these types/values: {}'.format(
-                    self.type_definition_repr))
+            raise ValueError('The value has to be one of these types/values: {}'.format(self.type_definition_repr))
 
     def __call__(self, value: typing.Any) -> typing.Any:
         if value == _UNDEFINED:
@@ -101,8 +94,7 @@ class SettingsValue:
 
 
 class SettingSublistValue(SettingsValue):
-    """Check the value is a sublist of type definition.
-    """
+    """Check the value is a sublist of type definition."""
 
     def check_type_definition(self, value: typing.Any) -> typing.Any:
         if not isinstance(value, list):
@@ -111,9 +103,9 @@ class SettingSublistValue(SettingsValue):
             if not item in self.type_definition[0]:
                 raise ValueError('{} not in {}'.format(item, self.type_definition))
 
+
 class SettingsDirectoryValue(SettingsValue):
-    """Check and update a setting value that is a directory path
-    """
+    """Check and update a setting value that is a directory path"""
 
     def check_type_definition(self, value: typing.Any) -> typing.Any:
         super().check_type_definition(value)
@@ -150,16 +142,17 @@ SCHEMA = {
         'debug': SettingsValue(bool, False, 'SEARXNG_DEBUG'),
         'instance_name': SettingsValue(str, 'SearXNG'),
         'contact_url': SettingsValue((None, False, str), None),
+        'enable_metrics': SettingsValue(bool, True),
     },
     'brand': {
         'issue_url': SettingsValue(str, 'https://github.com/searxng/searxng/issues'),
         'new_issue_url': SettingsValue(str, 'https://github.com/searxng/searxng/issues/new'),
-        'docs_url': SettingsValue(str, 'https://searxng.github.io/searxng'),
+        'docs_url': SettingsValue(str, 'https://docs.searxng.org'),
         'public_instances': SettingsValue(str, 'https://searx.space'),
         'wiki_url': SettingsValue(str, 'https://github.com/searxng/searxng/wiki'),
     },
     'search': {
-        'safe_search': SettingsValue((0,1,2), 0),
+        'safe_search': SettingsValue((0, 1, 2), 0),
         'autocomplete': SettingsValue(str, ''),
         'default_lang': SettingsValue(tuple(LANGUAGE_CODES + ['']), ''),
         'languages': SettingSublistValue(LANGUAGE_CODES, LANGUAGE_CODES),
@@ -168,7 +161,7 @@ SCHEMA = {
         'formats': SettingsValue(list, OUTPUT_FORMATS),
     },
     'server': {
-        'port': SettingsValue((int,str), 8888, 'SEARXNG_PORT'),
+        'port': SettingsValue((int, str), 8888, 'SEARXNG_PORT'),
         'bind_address': SettingsValue(str, '127.0.0.1', 'SEARXNG_BIND_ADDRESS'),
         'secret_key': SettingsValue(str, environ_name='SEARXNG_SECRET'),
         'base_url': SettingsValue((False, str), False),
@@ -176,6 +169,9 @@ SCHEMA = {
         'http_protocol_version': SettingsValue(('1.0', '1.1'), '1.0'),
         'method': SettingsValue(('POST', 'GET'), 'POST'),
         'default_http_headers': SettingsValue(dict, {}),
+    },
+    'redis': {
+        'url': SettingsValue(str, 'unix:///usr/local/searxng-redis/run/redis.sock?db=0'),
     },
     'ui': {
         'static_path': SettingsDirectoryValue(str, os.path.join(searx_dir, 'static')),
@@ -189,7 +185,6 @@ SCHEMA = {
         'results_on_new_tab': SettingsValue(bool, False),
         'advanced_search': SettingsValue(bool, False),
         'query_in_title': SettingsValue(bool, False),
-        'categories_order': SettingsValue(list, CATEGORY_ORDER),
     },
     'preferences': {
         'lock': SettingsValue(list, []),
@@ -213,18 +208,18 @@ SCHEMA = {
         # Tor configuration
         'using_tor_proxy': SettingsValue(bool, False),
         'extra_proxy_timeout': SettingsValue(int, 0),
-        'networks': {
-        },
+        'networks': {},
     },
     'plugins': SettingsValue(list, []),
     'enabled_plugins': SettingsValue((None, list), None),
     'checker': {
         'off_when_debug': SettingsValue(bool, True),
     },
+    'categories_as_tabs': SettingsValue(dict, CATEGORIES_AS_TABS),
     'engines': SettingsValue(list, []),
-    'doi_resolvers': {
-    },
+    'doi_resolvers': {},
 }
+
 
 def settings_set_defaults(settings):
     # compatibility with searx variables

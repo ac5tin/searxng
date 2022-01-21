@@ -7,7 +7,7 @@ brand:
   git_branch: master
   issue_url: https://github.com/searxng/searxng/issues
   new_issue_url: https://github.com/searxng/searxng/issues/new
-  docs_url: https://searxng.github.io/searxng
+  docs_url: https://docs.searxng.org
   public_instances: https://searx.space
   wiki_url: https://github.com/searxng/searxng/wiki
 
@@ -32,6 +32,10 @@ preferences:
 outgoing:
   request_timeout: 1.0  # seconds
   useragent_suffix: ""
+
+categories_as_tabs:
+  general:
+  dummy:
 
 engines:
   - name: general dummy

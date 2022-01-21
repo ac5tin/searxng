@@ -9,14 +9,22 @@ from timeit import default_timer
 from operator import itemgetter
 
 from searx.engines import engines
-from .models import HistogramStorage, CounterStorage
+from .models import HistogramStorage, CounterStorage, VoidHistogram, VoidCounterStorage
 from .error_recorder import count_error, count_exception, errors_per_engines
 
-__all__ = ["initialize",
-           "get_engines_stats", "get_engine_errors",
-           "histogram", "histogram_observe", "histogram_observe_time",
-           "counter", "counter_inc", "counter_add",
-           "count_error", "count_exception"]
+__all__ = [
+    "initialize",
+    "get_engines_stats",
+    "get_engine_errors",
+    "histogram",
+    "histogram_observe",
+    "histogram_observe_time",
+    "counter",
+    "counter_inc",
+    "counter_add",
+    "count_error",
+    "count_exception",
+]
 
 
 ENDPOINTS = {'search'}
@@ -61,18 +69,22 @@ def counter(*args):
     return counter_storage.get(*args)
 
 
-def initialize(engine_names=None):
+def initialize(engine_names=None, enabled=True):
     """
     Initialize metrics
     """
     global counter_storage, histogram_storage  # pylint: disable=global-statement
 
-    counter_storage = CounterStorage()
-    histogram_storage = HistogramStorage()
+    if enabled:
+        counter_storage = CounterStorage()
+        histogram_storage = HistogramStorage()
+    else:
+        counter_storage = VoidCounterStorage()
+        histogram_storage = HistogramStorage(histogram_class=VoidHistogram)
 
     # max_timeout = max of all the engine.timeout
     max_timeout = 2
-    for engine_name in (engine_names or engines):
+    for engine_name in engine_names or engines:
         if engine_name in engines:
             max_timeout = max(max_timeout, engines[engine_name].timeout)
 
@@ -81,7 +93,7 @@ def initialize(engine_names=None):
     histogram_size = int(1.5 * max_timeout / histogram_width)
 
     # engines
-    for engine_name in (engine_names or engines):
+    for engine_name in engine_names or engines:
         # search count
         counter_storage.configure('engine', engine_name, 'search', 'count', 'sent')
         counter_storage.configure('engine', engine_name, 'search', 'count', 'successful')
@@ -112,17 +124,19 @@ def get_engine_errors(engline_name_list):
         r = []
         for context, count in sorted_context_count_list:
             percentage = round(20 * count / sent_search_count) * 5
-            r.append({
-                'filename': context.filename,
-                'function': context.function,
-                'line_no': context.line_no,
-                'code': context.code,
-                'exception_classname': context.exception_classname,
-                'log_message': context.log_message,
-                'log_parameters': context.log_parameters,
-                'secondary': context.secondary,
-                'percentage': percentage,
-            })
+            r.append(
+                {
+                    'filename': context.filename,
+                    'function': context.function,
+                    'line_no': context.line_no,
+                    'code': context.code,
+                    'exception_classname': context.exception_classname,
+                    'log_message': context.log_message,
+                    'log_parameters': context.log_parameters,
+                    'secondary': context.secondary,
+                    'percentage': percentage,
+                }
+            )
         result[engine_name] = sorted(r, reverse=True, key=lambda d: d['percentage'])
     return result
 
