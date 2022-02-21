@@ -17,6 +17,7 @@
 @import "autocomplete.less";
 @import "detail.less";
 @import "animations.less";
+@import "embedded.less";
 
 // for index.html template
 @import "index.less";
@@ -79,9 +80,7 @@ main {
   flex: 1;
 }
 
-#main_preferences,
-#main_about,
-#main_stats {
+.page_with_header {
   margin: 2em auto;
   width: 85em;
 }
@@ -101,16 +100,8 @@ footer {
   }
 }
 
-#main_preferences h1,
-#main_stats h1 {
-  background: url('../img/searxng.png') no-repeat;
-  background-size: contain;
-  min-height: 40px;
-  margin: 0 auto;
-
-  span {
-    visibility: hidden;
-  }
+.page_with_header .logo {
+  height: 40px;
 }
 
 input[type="submit"],
@@ -199,8 +190,7 @@ article[data-vim-selected].category-social {
   }
 
   .content,
-  .stat,
-  .altlink {
+  .stat {
     font-size: 0.9em;
     margin: 0;
     padding: 0;
@@ -213,6 +203,12 @@ article[data-vim-selected].category-social {
       background: inherit;
       font-weight: bold;
     }
+  }
+
+  .altlink a {
+    font-size: 0.9em;
+    margin: 0 10px 0 0;
+    .show-content-button;
   }
 
   .codelines {
@@ -306,8 +302,32 @@ article[data-vim-selected].category-social {
   padding: 0 5px 25px 0 !important;
 }
 
+.audio-control audio {
+  width: 100%;
+  padding: 10px 0 0 0;
+}
+
+.embedded-content iframe {
+  width: 100%;
+  padding: 10px 0 0 0;
+}
+
 .result-videos .content {
   overflow: hidden;
+}
+
+.result-videos .embedded-video iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 10px 0 0 0;
+}
+
+@supports not (aspect-ratio: 1 / 1) {
+  // support older browsers which do not have aspect-ratio
+  // https://caniuse.com/?search=aspect-ratio
+  .result-videos .embedded-video iframe {
+    height: calc(@results-width * 9 / 16);
+  }
 }
 
 .engines {
@@ -586,7 +606,7 @@ article[data-vim-selected].category-social {
 
 #linkto_preferences {
   position: absolute;
-  .ltr-right(10px);
+  .ltr-right(1.8rem);
   top: 2.2rem;
   padding: 0;
   border: 0;
@@ -647,9 +667,7 @@ article[data-vim-selected].category-social {
 }
 
 @media screen and (max-width: @tablet) {
-  #main_preferences,
-  #main_about,
-  #main_stats {
+  .page_with_header {
     margin: 2rem 0.5rem;
     width: auto;
   }

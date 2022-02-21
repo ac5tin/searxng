@@ -43,6 +43,7 @@ server:
   port: 8888
   bind_address: "127.0.0.1"
   base_url: false  # Possible values: false or "https://example.org/location".
+  limiter: false  # rate limit the number of request on the instance, block some bots
 
   # If your instance owns a /etc/searxng/settings.yml file, then set the following
   # values there.
@@ -75,7 +76,7 @@ ui:
   # it decreases the privacy, since the browser can records the page titles.
   query_in_title: false
   # ui theme
-  default_theme: oscar
+  default_theme: simple
   # Default interface locale - leave blank to detect from browser information or
   # use codes from the 'locales' config section
   default_locale: ""
@@ -415,6 +416,7 @@ engines:
   - name: deezer
     engine: deezer
     shortcut: dz
+    disabled: true
 
   - name: deviantart
     engine: deviantart
@@ -497,6 +499,11 @@ engines:
     shortcut: ddi
     timeout: 3.0
     disabled: true
+
+  - name: tineye
+    engine: tineye
+    shortcut: tin
+    timeout: 9.0
 
   - name: etymonline
     engine: xpath
@@ -793,11 +800,16 @@ engines:
 
   - name: invidious
     engine: invidious
+    # Instanes will be selected randomly, see https://api.invidious.io/ for
+    # instances that are stable (good uptime) and close to you.
     base_url:
-      - https://invidious.tube/
-      - https://invidious.snopyta.org/
+      - https://invidious.snopyta.org
+      - https://vid.puffyan.us
+      # - https://invidious.kavin.rocks  # Error 1020 // Access denied by Cloudflare
+      - https://invidio.xamh.de
+      - https://inv.riverside.rocks
     shortcut: iv
-    timeout: 5.0
+    timeout: 3.0
     disabled: true
 
   - name: kickass
@@ -1264,8 +1276,13 @@ engines:
   - name: solidtorrents
     engine: solidtorrents
     shortcut: solid
-    timeout: 3.0
+    timeout: 4.0
     disabled: false
+    base_url:
+      - https://solidtorrents.net
+      - https://solidtorrents.eu
+      - https://solidtorrents.to
+      - https://bitsearch.to
 
   # For this demo of the sqlite engine download:
   #   https://liste.mediathekview.de/filmliste-v2.db.bz2
@@ -1475,7 +1492,7 @@ engines:
     # Or you can use the html non-stable engine, activated by default
     engine: wolframalpha_noapi
     timeout: 6.0
-    categories: science
+    categories: []
 
   - name: dictzone
     engine: dictzone
@@ -1584,9 +1601,12 @@ engines:
     engine: peertube
     shortcut: ptb
     paging: true
-    base_url: https://peer.tube/
+    # https://instances.joinpeertube.org/instances
+    base_url: https://peertube.biz/
+    # base_url: https://tube.tardis.world/
     categories: videos
     disabled: true
+    timeout: 6.0
 
   - name: mediathekviewweb
     engine: mediathekviewweb

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # lint: pylint
+# pyright: basic
 """WebbApp
 
 """
@@ -33,11 +34,11 @@ from flask import (
     Flask,
     render_template,
     url_for,
-    Response,
     make_response,
     redirect,
     send_from_directory,
 )
+from flask.wrappers import Response
 from flask.ctx import has_request_context
 from flask.json import jsonify
 
@@ -55,6 +56,7 @@ from searx import (
     get_setting,
     settings,
     searx_debug,
+    user_help,
 )
 from searx.data import ENGINE_DESCRIPTIONS
 from searx.results import Timing, UnresponsiveEngine
@@ -254,7 +256,13 @@ flask_babel.get_translations = _get_translations
 
 @babel.localeselector
 def get_locale():
-    locale = request.preferences.get_value('locale') if has_request_context() else 'en'
+    locale = 'en'
+
+    if has_request_context():
+        value = request.preferences.get_value('locale')
+        if value:
+            locale = value
+
     if locale == 'oc':
         request.form['use-translation'] = 'oc'
         locale = 'fr_FR'
@@ -309,6 +317,7 @@ def code_highlighter(codelines, language=None):
     html_code = ''
     tmp_code = ''
     last_line = None
+    line_code_start = None
 
     # parse lines
     for line, code in codelines:
@@ -350,9 +359,11 @@ def get_current_theme_name(override: str = None) -> str:
     if override and (override in themes or override == '__common__'):
         return override
     theme_name = request.args.get('theme', request.preferences.get_value('theme'))
-    if theme_name not in themes:
-        theme_name = default_theme
-    return theme_name
+
+    if theme_name and theme_name in themes:
+        return theme_name
+
+    return default_theme
 
 
 def get_result_template(theme_name: str, template_name: str):
@@ -379,7 +390,7 @@ def proxify(url: str):
     if not settings.get('result_proxy'):
         return url
 
-    url_params = dict(mortyurl=url.encode())
+    url_params = dict(mortyurl=url)
 
     if settings['result_proxy'].get('key'):
         url_params['mortyhash'] = hmac.new(settings['result_proxy']['key'], url.encode(), hashlib.sha256).hexdigest()
@@ -866,8 +877,21 @@ def __get_translated_errors(unresponsive_engines: Iterable[UnresponsiveEngine]):
 
 @app.route('/about', methods=['GET'])
 def about():
-    """Render about page"""
-    return render('about.html')
+    """Redirect to about page"""
+    return redirect(url_for('help_page', pagename='about'))
+
+
+@app.route('/help/en/<pagename>', methods=['GET'])
+def help_page(pagename):
+    """Render help page"""
+    page = user_help.PAGES.get(pagename)
+
+    if page is None:
+        flask.abort(404)
+
+    return render(
+        'help.html', page=user_help.PAGES[pagename], all_pages=user_help.PAGES.items(), page_filename=pagename
+    )
 
 
 @app.route('/autocompleter', methods=['GET', 'POST'])
@@ -1108,7 +1132,7 @@ def image_proxy():
             'DNT': '1',
         }
         set_context_network_name('image_proxy')
-        resp, stream = http_stream(method='GET', url=url, headers=request_headers)
+        resp, stream = http_stream(method='GET', url=url, headers=request_headers, allow_redirects=True)
         content_length = resp.headers.get('Content-Length')
         if content_length and content_length.isdigit() and int(content_length) > maximum_size:
             return 'Max size', 400
@@ -1139,7 +1163,8 @@ def image_proxy():
     def close_stream():
         nonlocal resp, stream
         try:
-            resp.close()
+            if resp:
+                resp.close()
             del resp
             del stream
         except httpx.HTTPError as e:
@@ -1169,6 +1194,13 @@ def engine_descriptions():
         if isinstance(description, str):
             description = [description, 'wikipedia']
         result[engine] = description
+
+    # overwrite by about:description (from settings)
+    for engine_name, engine_mod in engines.items():
+        descr = getattr(engine_mod, 'about', {}).get('description', None)
+        if descr is not None:
+            result[engine_name] = [descr, "SearXNG config"]
+
     return jsonify(result)
 
 
@@ -1199,7 +1231,7 @@ def stats():
     reverse, key_name, default_value = STATS_SORT_PARAMETERS[sort_order]
 
     def get_key(engine_stat):
-        reliability = engine_reliabilities.get(engine_stat['name']).get('reliablity', 0)
+        reliability = engine_reliabilities.get(engine_stat['name'], {}).get('reliablity', 0)
         reliability_order = 0 if reliability else 1
         if key_name == 'reliability':
             key = reliability
@@ -1359,6 +1391,7 @@ werkzeug_reloader = flask_run_development or (searx_debug and __name__ == "__mai
 if not werkzeug_reloader or (werkzeug_reloader and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
     plugin_initialize(app)
     search_initialize(enable_checker=True, check_network=True, enable_metrics=settings['general']['enable_metrics'])
+    user_help.render(app)
 
 
 def run():

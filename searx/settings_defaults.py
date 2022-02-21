@@ -163,6 +163,7 @@ SCHEMA = {
     'server': {
         'port': SettingsValue((int, str), 8888, 'SEARXNG_PORT'),
         'bind_address': SettingsValue(str, '127.0.0.1', 'SEARXNG_BIND_ADDRESS'),
+        'limiter': SettingsValue(bool, False),
         'secret_key': SettingsValue(str, environ_name='SEARXNG_SECRET'),
         'base_url': SettingsValue((False, str), False),
         'image_proxy': SettingsValue(bool, False),
@@ -176,7 +177,7 @@ SCHEMA = {
     'ui': {
         'static_path': SettingsDirectoryValue(str, os.path.join(searx_dir, 'static')),
         'templates_path': SettingsDirectoryValue(str, os.path.join(searx_dir, 'templates')),
-        'default_theme': SettingsValue(str, 'oscar'),
+        'default_theme': SettingsValue(str, 'simple'),
         'default_locale': SettingsValue(str, ''),
         'theme_args': {
             'oscar_style': SettingsValue(OSCAR_STYLE, 'logicodev'),
