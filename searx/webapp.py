@@ -16,7 +16,7 @@ from timeit import default_timer
 from html import escape
 from io import StringIO
 import typing
-from typing import List, Dict, Iterable
+from typing import List, Dict, Iterable, Optional
 
 import urllib
 import urllib.parse
@@ -348,7 +348,7 @@ def code_highlighter(codelines, language=None):
     return html_code
 
 
-def get_current_theme_name(override: str = None) -> str:
+def get_current_theme_name(override: Optional[str] = None) -> str:
     """Returns theme name.
 
     Checks in this order:
@@ -373,14 +373,16 @@ def get_result_template(theme_name: str, template_name: str):
     return 'result_templates/' + template_name
 
 
-def url_for_theme(endpoint: str, override_theme: str = None, **values):
+def url_for_theme(endpoint: str, override_theme: Optional[str] = None, **values):
+    suffix = ""
     if endpoint == 'static' and values.get('filename'):
         theme_name = get_current_theme_name(override=override_theme)
         filename_with_theme = "themes/{}/{}".format(theme_name, values['filename'])
-        if filename_with_theme in static_files:
+        file_hash = static_files.get(filename_with_theme)
+        if file_hash:
             values['filename'] = filename_with_theme
-    url = url_for(endpoint, **values)
-    return url
+            suffix = "?" + file_hash
+    return url_for(endpoint, **values) + suffix
 
 
 def proxify(url: str):
@@ -431,6 +433,8 @@ def get_translations():
         'no_item_found': gettext('No item found'),
         # /preferences: the source of the engine description (wikipedata, wikidata, website)
         'Source': gettext('Source'),
+        # infinite scroll
+        'error_loading_next_page': gettext('Error loading the next page'),
     }
 
 
@@ -463,6 +467,7 @@ def render(template_name: str, override_theme: str = None, **kwargs):
     kwargs['preferences'] = request.preferences
     kwargs['method'] = request.preferences.get_value('method')
     kwargs['autocomplete'] = request.preferences.get_value('autocomplete')
+    kwargs['infinite_scroll'] = request.preferences.get_value('infinite_scroll')
     kwargs['results_on_new_tab'] = request.preferences.get_value('results_on_new_tab')
     kwargs['advanced_search'] = request.preferences.get_value('advanced_search')
     kwargs['query_in_title'] = request.preferences.get_value('query_in_title')
@@ -723,6 +728,9 @@ def search():
     # Server-Timing header
     request.timings = result_container.get_timings()  # pylint: disable=assigning-non-slot
 
+    current_template = None
+    previous_result = None
+
     # output
     for result in results:
         if output_format == 'html':
@@ -758,6 +766,18 @@ def search():
                         )
                 else:
                     result['publishedDate'] = format_date(result['publishedDate'])
+
+        # set result['open_group'] = True when the template changes from the previous result
+        # set result['close_group'] = True when the template changes on the next result
+        if current_template != result.get('template'):
+            result['open_group'] = True
+            if previous_result:
+                previous_result['close_group'] = True  # pylint: disable=unsupported-assignment-operation
+        current_template = result.get('template')
+        previous_result = result
+
+    if previous_result:
+        previous_result['close_group'] = True
 
     if output_format == 'json':
         x = {

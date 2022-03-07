@@ -169,7 +169,6 @@ outgoing:
 #   - 'Ahmia blacklist'  # activation depends on outgoing.using_tor_proxy
 #   # these plugins are disabled if nothing is configured ..
 #   - 'Hostname replace'  # see hostname_replace configuration below
-#   - 'Infinite scroll'
 #   - 'Open Access DOI rewrite'
 #   - 'Vim-like hotkeys'
 
@@ -1224,13 +1223,6 @@ engines:
     disabled: true
     shortcut: se
     categories: science
-    about:
-      website: https://www.semanticscholar.org/
-      wikidata_id: Q22908627
-      official_api_documentation: https://api.semanticscholar.org/
-      use_official_api: false
-      require_api_key: false
-      results: JSON
 
   # Spotify needs API credentials
   # - name: spotify

@@ -23,6 +23,11 @@ class ViewsTestCase(SearxTestCase):
         webapp.app.config['TESTING'] = True  # to get better error messages
         self.app = webapp.app.test_client()
 
+        # remove sha for the static file
+        # so the tests don't have to care about the changing URLs
+        for k in webapp.static_files:
+            webapp.static_files[k] = None
+
         # set some defaults
         test_results = [
             {
@@ -33,7 +38,8 @@ class ViewsTestCase(SearxTestCase):
                 'engine': 'startpage',
                 'parsed_url': ParseResult(
                     scheme='http', netloc='first.test.xyz', path='/', params='', query='', fragment=''
-                ),  # noqa
+                ),
+                'template': 'default.html',
             },
             {
                 'content': 'second test content',
@@ -43,7 +49,8 @@ class ViewsTestCase(SearxTestCase):
                 'engine': 'youtube',
                 'parsed_url': ParseResult(
                     scheme='http', netloc='second.test.xyz', path='/', params='', query='', fragment=''
-                ),  # noqa
+                ),
+                'template': 'default.html',
             },
         ]
 
