@@ -20,7 +20,7 @@ from typing import List, Dict, Iterable, Optional
 
 import urllib
 import urllib.parse
-from urllib.parse import urlencode
+from urllib.parse import urlencode, unquote
 
 import httpx
 
@@ -56,8 +56,9 @@ from searx import (
     get_setting,
     settings,
     searx_debug,
-    user_help,
 )
+
+from searx import infopage
 from searx.data import ENGINE_DESCRIPTIONS
 from searx.results import Timing, UnresponsiveEngine
 from searx.settings_defaults import OUTPUT_FORMATS
@@ -79,7 +80,6 @@ from searx.webutils import (
     new_hmac,
     is_hmac_of,
     is_flask_run_cmdline,
-    DEFAULT_GROUP_NAME,
     group_engines_in_tab,
 )
 from searx.webadapter import (
@@ -153,6 +153,7 @@ STATS_SORT_PARAMETERS = {
     'time': (False, 'total', 0),
     'reliability': (False, 'reliability', 100),
 }
+_INFO_PAGES = infopage.InfoPageSet()
 
 # Flask app
 app = Flask(__name__, static_folder=settings['ui']['static_path'], template_folder=templates_path)
@@ -165,35 +166,6 @@ app.secret_key = settings['server']['secret_key']
 
 babel = Babel(app)
 
-# used when translating category names
-_category_names = (
-    gettext('files'),
-    gettext('general'),
-    gettext('music'),
-    gettext('social media'),
-    gettext('images'),
-    gettext('videos'),
-    gettext('it'),
-    gettext('news'),
-    gettext('map'),
-    gettext('onions'),
-    gettext('science'),
-    # non-tab categories
-    gettext('apps'),
-    gettext('dictionaries'),
-    gettext('lyrics'),
-    gettext('packages'),
-    gettext('q&a'),
-    gettext('repos'),
-    gettext('software wikis'),
-    gettext('web'),
-    gettext(DEFAULT_GROUP_NAME),
-    gettext(OTHER_CATEGORY),
-)
-
-_simple_style = (gettext('auto'), gettext('light'), gettext('dark'))
-
-#
 timeout_text = gettext('timeout')
 parsing_error_text = gettext('parsing error')
 http_protocol_error_text = gettext('HTTP protocol error')
@@ -373,15 +345,24 @@ def get_result_template(theme_name: str, template_name: str):
     return 'result_templates/' + template_name
 
 
-def url_for_theme(endpoint: str, override_theme: Optional[str] = None, **values):
+def custom_url_for(endpoint: str, override_theme: Optional[str] = None, **values):
     suffix = ""
     if endpoint == 'static' and values.get('filename'):
-        theme_name = get_current_theme_name(override=override_theme)
-        filename_with_theme = "themes/{}/{}".format(theme_name, values['filename'])
-        file_hash = static_files.get(filename_with_theme)
-        if file_hash:
-            values['filename'] = filename_with_theme
+        file_hash = static_files.get(values['filename'])
+        if not file_hash:
+            # try file in the current theme
+            theme_name = get_current_theme_name(override=override_theme)
+            filename_with_theme = "themes/{}/{}".format(theme_name, values['filename'])
+            file_hash = static_files.get(filename_with_theme)
+            if file_hash:
+                values['filename'] = filename_with_theme
+        if get_setting('ui.static_use_hash') and file_hash:
             suffix = "?" + file_hash
+    if endpoint == 'info' and 'locale' not in values:
+        locale = request.preferences.get_value('locale')
+        if _INFO_PAGES.get_page(values['pagename'], locale) is None:
+            locale = _INFO_PAGES.locale_default
+        values['locale'] = locale
     return url_for(endpoint, **values) + suffix
 
 
@@ -453,7 +434,7 @@ def _get_enable_categories(all_categories: Iterable[str]):
 def get_pretty_url(parsed_url: urllib.parse.ParseResult):
     path = parsed_url.path
     path = path[:-1] if len(path) > 0 and path[-1] == '/' else path
-    path = path.replace("/", " › ")
+    path = unquote(path).replace("/", " › ")
     return [parsed_url.scheme + "://" + parsed_url.netloc, path]
 
 
@@ -500,7 +481,7 @@ def render(template_name: str, override_theme: str = None, **kwargs):
     kwargs['get_pretty_url'] = get_pretty_url
 
     # helpers to create links to other pages
-    kwargs['url_for'] = url_for_theme  # override url_for function in templates
+    kwargs['url_for'] = custom_url_for  # override url_for function in templates
     kwargs['image_proxify'] = image_proxify
     kwargs['proxify'] = proxify if settings.get('result_proxy', {}).get('url') else None
     kwargs['proxify_results'] = settings.get('result_proxy', {}).get('proxify_results', True)
@@ -660,6 +641,7 @@ def index():
         # fmt: off
         'index.html',
         selected_categories=get_selected_categories(request.preferences, request.form),
+        current_locale = request.preferences.get_value("locale"),
         # fmt: on
     )
 
@@ -864,6 +846,7 @@ def search():
         unresponsive_engines = __get_translated_errors(
             result_container.unresponsive_engines
         ),
+        current_locale = request.preferences.get_value("locale"),
         current_language = match_language(
             search_query.lang,
             settings['search']['languages'],
@@ -898,19 +881,23 @@ def __get_translated_errors(unresponsive_engines: Iterable[UnresponsiveEngine]):
 @app.route('/about', methods=['GET'])
 def about():
     """Redirect to about page"""
-    return redirect(url_for('help_page', pagename='about'))
+    # custom_url_for is going to add the locale
+    return redirect(custom_url_for('info', pagename='about'))
 
 
-@app.route('/help/en/<pagename>', methods=['GET'])
-def help_page(pagename):
-    """Render help page"""
-    page = user_help.PAGES.get(pagename)
-
+@app.route('/info/<locale>/<pagename>', methods=['GET'])
+def info(pagename, locale):
+    """Render page of online user documentation"""
+    page = _INFO_PAGES.get_page(pagename, locale)
     if page is None:
         flask.abort(404)
 
+    user_locale = request.preferences.get_value('locale')
     return render(
-        'help.html', page=user_help.PAGES[pagename], all_pages=user_help.PAGES.items(), page_filename=pagename
+        'info.html',
+        all_pages=_INFO_PAGES.iter_pages(user_locale, fallback_to_default=True),
+        active_page=page,
+        active_pagename=pagename,
     )
 
 
@@ -1292,9 +1279,9 @@ def stats_checker():
 def robots():
     return Response(
         """User-agent: *
-Allow: /
-Allow: /about
+Allow: /info/en/about
 Disallow: /stats
+Disallow: /image_proxy
 Disallow: /preferences
 Disallow: /*?*q=*
 """,
@@ -1411,7 +1398,6 @@ werkzeug_reloader = flask_run_development or (searx_debug and __name__ == "__mai
 if not werkzeug_reloader or (werkzeug_reloader and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
     plugin_initialize(app)
     search_initialize(enable_checker=True, check_network=True, enable_metrics=settings['general']['enable_metrics'])
-    user_help.render(app)
 
 
 def run():

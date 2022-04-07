@@ -23,11 +23,13 @@ search:
   default_lang: "en-GB"
   # Available languages
   # languages:
-  #  - all
-  #  - es
-  #  - de
-  #  - it-IT
-  #  - en-GB
+  #   - all
+  #   - en
+  #   - en-US
+  #   - de
+  #   - it-IT
+  #   - fr
+  #   - fr-BE
   # ban time in seconds after engine errors
   ban_time_on_fail: 5
   # max ban time in seconds after engine errors
@@ -70,6 +72,7 @@ redis:
 ui:
   # Custom static path - leave it blank if you didn't change
   static_path: ""
+  static_use_hash: false
   # Custom templates path - leave it blank if you didn't change
   templates_path: ""
   # query_in_title: When true, the result page's titles contains the query
@@ -80,13 +83,13 @@ ui:
   # Default interface locale - leave blank to detect from browser information or
   # use codes from the 'locales' config section
   default_locale: ""
+  # Open result links in a new tab by default
+  # results_on_new_tab: false
   theme_args:
     # default style of oscar
     oscar_style: logicodev-dark
     # style of simple theme: auto, light, dark
     simple_style: auto
-    # Open result links in a new tab by default
-    # results_on_new_tab: false
 
 # Lock arbitrary settings on the preferences page.  To find the ID of the user
 # setting you want to lock, check the ID of the form on the page "preferences".

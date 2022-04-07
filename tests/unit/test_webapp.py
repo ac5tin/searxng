@@ -97,12 +97,12 @@ class ViewsTestCase(SearxTestCase):
     def test_index_html_post(self):
         result = self.app.post('/', data={'q': 'test'})
         self.assertEqual(result.status_code, 308)
-        self.assertEqual(result.location, 'http://localhost/search')
+        self.assertEqual(result.location, '/search')
 
     def test_index_html_get(self):
         result = self.app.post('/?q=test')
         self.assertEqual(result.status_code, 308)
-        self.assertEqual(result.location, 'http://localhost/search?q=test')
+        self.assertEqual(result.location, '/search?q=test')
 
     def test_search_empty_html(self):
         result = self.app.post('/search', data={'q': ''})
@@ -177,10 +177,14 @@ class ViewsTestCase(SearxTestCase):
 
         self.assertIn(b'<description>first test content</description>', result.data)
 
-    def test_about(self):
-        result = self.app.get('/help/en/about')
+    def test_redirect_about(self):
+        result = self.app.get('/about')
+        self.assertEqual(result.status_code, 302)
+
+    def test_info_page(self):
+        result = self.app.get('/info/en/search-syntax')
         self.assertEqual(result.status_code, 200)
-        self.assertIn(b'<h1>About SearXNG</h1>', result.data)
+        self.assertIn(b'<h1>Search syntax</h1>', result.data)
 
     def test_health(self):
         result = self.app.get('/healthz')
@@ -194,7 +198,7 @@ class ViewsTestCase(SearxTestCase):
         self.assertIn(
             b'<input type="checkbox" id="checkbox_general" name="category_general" checked="checked"/>', result.data
         )
-        self.assertIn(b'<legend>Interface language</legend>', result.data)
+        self.assertIn(b'<legend id="pref_locale">Interface language</legend>', result.data)
 
     def test_browser_locale(self):
         result = self.app.get('/preferences', headers={'Accept-Language': 'zh-tw;q=0.8'})

@@ -35,7 +35,7 @@ master_doc = "index"
 source_suffix = '.rst'
 numfig = True
 
-exclude_patterns = ['build-templates/*.rst']
+exclude_patterns = ['build-templates/*.rst', 'user/*.md']
 
 import searx.engines
 import searx.plugins
@@ -94,7 +94,6 @@ extlinks['pull-searx'] = ('https://github.com/searx/searx/pull/%s', 'PR ')
 # links to custom brand
 extlinks['origin'] = (GIT_URL + '/blob/' + GIT_BRANCH + '/%s', 'git://')
 extlinks['patch'] = (GIT_URL + '/commit/%s', '#')
-extlinks['search'] = (SEARXNG_URL + '/%s', '#')
 extlinks['docs'] = (DOCS_URL + '/%s', 'docs: ')
 extlinks['pypi'] = ('https://pypi.org/project/%s', 'PyPi: ')
 extlinks['man'] = ('https://manpages.debian.org/jump?q=%s', '')
@@ -117,13 +116,17 @@ extensions = [
     "sphinx.ext.intersphinx",
     "pallets_sphinx_themes",
     "sphinx_issues", # https://github.com/sloria/sphinx-issues/blob/master/README.rst
-    "sphinxcontrib.jinja",  # https://github.com/tardyp/sphinx-jinja
+    "sphinx_jinja",  # https://github.com/tardyp/sphinx-jinja
     "sphinxcontrib.programoutput",  # https://github.com/NextThought/sphinxcontrib-programoutput
     'linuxdoc.kernel_include',  # Implementation of the 'kernel-include' reST-directive.
     'linuxdoc.rstFlatTable',    # Implementation of the 'flat-table' reST-directive.
     'linuxdoc.kfigure',         # Sphinx extension which implements scalable image handling.
     "sphinx_tabs.tabs", # https://github.com/djungelorm/sphinx-tabs
+    'myst_parser',  # https://www.sphinx-doc.org/en/master/usage/markdown.html
+    'notfound.extension',  # https://github.com/readthedocs/sphinx-notfound-page
 ]
+
+suppress_warnings = ['myst.domains']
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
@@ -137,6 +140,10 @@ intersphinx_mapping = {
 issues_github_path = "searxng/searxng"
 
 # HTML -----------------------------------------------------------------
+
+# https://searxng.github.io/searxng --> '/searxng/'
+# https://docs.searxng.org --> '/'
+notfound_urls_prefix = '/'
 
 sys.path.append(os.path.abspath('_themes'))
 sys.path.insert(0, os.path.abspath("../utils/"))

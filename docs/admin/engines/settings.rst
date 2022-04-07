@@ -37,10 +37,10 @@ see how you can simplify your *user defined* ``settings.yml``.
 Global Settings
 ===============
 
-.. _settings global brand:
+.. _settings brand:
 
 ``brand:``
-------------
+----------
 
 .. code:: yaml
 
@@ -62,7 +62,7 @@ Global Settings
 ``wiki_url`` :
   Link to your wiki (or ``false``)
 
-.. _settings global general:
+.. _settings general:
 
 ``general:``
 ------------
@@ -85,7 +85,78 @@ Global Settings
   Enabled by default. Record various anonymous metrics availabled at ``/stats``,
   ``/stats/errors`` and ``/preferences``.
 
-.. _settings global server:
+.. _settings search:
+
+``search:``
+-----------
+
+.. code:: yaml
+
+   search:
+     safe_search: 0
+     autocomplete: ""
+     default_lang: ""
+     ban_time_on_fail: 5
+     max_ban_time_on_fail: 120
+     formats:
+       - html
+
+``safe_search``:
+  Filter results.
+
+  - ``0``: None
+  - ``1``: Moderate
+  - ``2``: Strict
+
+``autocomplete``:
+  Existing autocomplete backends, leave blank to turn it off.
+
+  - ``dbpedia``
+  - ``duckduckgo``
+  - ``google``
+  - ``startpage``
+  - ``swisscows``
+  - ``qwant``
+  - ``wikipedia``
+
+``default_lang``:
+  Default search language - leave blank to detect from browser information or
+  use codes from :origin:`searx/languages.py`.
+
+``languages``:
+  List of available languages - leave unset to use all codes from
+  :origin:`searx/languages.py`.  Otherwise list codes of available languages.
+  The ``all`` value is shown as the ``Default language`` in the user interface
+  (in most cases, it is meant to send the query without a language parameter ;
+  in some cases, it means the English language) Example:
+
+  .. code:: yaml
+
+     languages:
+       - all
+       - en
+       - en-US
+       - de
+       - it-IT
+       - fr
+       - fr-BE
+
+``ban_time_on_fail``:
+  Ban time in seconds after engine errors.
+
+``max_ban_time_on_fail``:
+  Max ban time in seconds after engine errors.
+
+``formats``:
+  Result formats available from web, remove format to deny access (use lower
+  case).
+
+  - ``html``
+  - ``csv``
+  - ``json``
+  - ``rss``
+
+.. _settings server:
 
 ``server:``
 -----------
@@ -98,8 +169,6 @@ Global Settings
        bind_address: "127.0.0.1"      # address to listen on
        secret_key: "ultrasecretkey"   # change this!
        image_proxy: false             # proxying image results through SearXNG
-       default_locale: ""             # default interface locale
-       default_theme: oscar           # ui theme
        default_http_headers:
          X-Content-Type-Options : nosniff
          X-XSS-Protection : 1; mode=block
@@ -128,6 +197,26 @@ Global Settings
 ``image_proxy`` :
   Allow your instance of SearXNG of being able to proxy images.  Uses memory space.
 
+.. _HTTP headers: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+
+``default_http_headers``:
+  Set additional HTTP headers, see `#755 <https://github.com/searx/searx/issues/715>`__
+
+
+.. _settings ui:
+
+``ui:``
+-------
+
+.. code:: yaml
+
+   ui:
+     default_locale: ""
+     query_in_title: false
+     default_theme: simple
+     theme_args:
+       simple_style: auto
+
 ``default_locale`` :
   SearXNG interface language.  If blank, the locale is detected by using the
   browser language.  If it doesn't work, or you are deploying a language
@@ -137,10 +226,15 @@ Global Settings
 ``default_theme`` :
   Name of the theme you want to use by default on your SearXNG instance.
 
-.. _HTTP headers: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+``theme_args.simple_style``:
+  Style of simple theme: ``auto``, ``light``, ``dark``
 
-``default_http_headers``:
-  Set additional HTTP headers, see `#755 <https://github.com/searx/searx/issues/715>`__
+``query_in_title``:
+  When true, the result page's titles contains the query it decreases the
+  privacy, since the browser can records the page titles.
+
+``results_on_new_tab``:
+  Open result links in a new tab by default.
 
 
 .. _settings redis:
@@ -149,6 +243,17 @@ Global Settings
 ----------
 
 .. _Redis.from_url(url): https://redis-py.readthedocs.io/en/stable/connections.html#redis.client.Redis.from_url
+
+A redis DB can be connected by an URL, in :py:obj:`searx.shared.redisdb` you
+will find a description to test your redis connection in SerXNG.  When using
+sockets, don't forget to check the access rights on the socket::
+
+  ls -la /usr/local/searxng-redis/run/redis.sock
+  srwxrwx--- 1 searxng-redis searxng-redis ... /usr/local/searxng-redis/run/redis.sock
+
+In this example read/write access is given to the *searxng-redis* group.  To get
+access rights to redis instance (the socket), your SearXNG (or even your
+developer) account needs to be added to the *searxng-redis* group.
 
 ``url``
   URL to connect redis database, see `Redis.from_url(url)`_ & :ref:`redis db`::
@@ -159,16 +264,20 @@ Global Settings
 
 .. admonition:: Tip for developers
 
-   To set up a redis instance simply use::
+   To set up a local redis instance using sockets simply use::
 
      $ ./manage redis.build
      $ sudo -H ./manage redis.install
-
-   To get access rights to this instance, your developer account needs to be
-   added to the *searxng-redis* group::
-
      $ sudo -H ./manage redis.addgrp "${USER}"
      # don't forget to logout & login to get member of group
+
+   The YAML setting for such a redis instance is:
+
+   .. code:: yaml
+
+      redis:
+        url: unix:///usr/local/searxng-redis/run/redis.sock?db=0
+
 
 .. _settings outgoing:
 
@@ -374,8 +483,9 @@ engine is shown.  Most of the options have a default value or even are optional.
 ``network``: optional
   Use the network configuration from another engine.
   In addition, there are two default networks:
-  * ``ipv4`` set ``local_addresses`` to ``0.0.0.0`` (use only IPv4 local addresses)
-  * ``ipv6`` set ``local_addresses`` to ``::`` (use only IPv6 local addresses)
+
+  - ``ipv4`` set ``local_addresses`` to ``0.0.0.0`` (use only IPv4 local addresses)
+  - ``ipv6`` set ``local_addresses`` to ``::`` (use only IPv6 local addresses)
 
 .. note::
 
