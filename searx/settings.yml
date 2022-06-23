@@ -91,13 +91,8 @@ ui:
   # Open result links in a new tab by default
   # results_on_new_tab: false
   theme_args:
-<<<<<<< HEAD
-    # default style of oscar
-    oscar_style: logicodev-dark
-=======
->>>>>>> searxng-master
     # style of simple theme: auto, light, dark
-    simple_style: auto
+    simple_style: dark
 
 # Lock arbitrary settings on the preferences page.  To find the ID of the user
 # setting you want to lock, check the ID of the form on the page "preferences".
@@ -324,6 +319,7 @@ engines:
   - name: bing
     engine: bing
     shortcut: bi
+    disabled: true
 
   - name: bing images
     engine: bing_images
@@ -605,6 +601,7 @@ engines:
     # api_key: 'apikey' # required!
     # Or you can use the html non-stable engine, activated by default
     engine: flickr_noapi
+    disabled: true
 
   - name: free software directory
     engine: mediawiki
@@ -652,6 +649,7 @@ engines:
   - name: gentoo
     engine: gentoo
     shortcut: ge
+    disabled: true
 
   - name: gitlab
     engine: json_engine
@@ -703,6 +701,7 @@ engines:
     shortcut: go
     # see https://docs.searxng.org/src/searx.engines.google.html#module-searx.engines.google
     use_mobile_ui: false
+    disabled: false
     # additional_tests:
     #   android: *test_android
 
@@ -1323,7 +1322,7 @@ engines:
     engine: startpage
     shortcut: sp
     timeout: 6.0
-    disabled: true
+    disabled: false
     additional_tests:
       rosebud: *test_rosebud
 
