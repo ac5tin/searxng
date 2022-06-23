@@ -88,6 +88,8 @@ class _HTMLTextExtractor(HTMLParser):  # pylint: disable=W0223  # (see https://b
 
     def handle_starttag(self, tag, attrs):
         self.tags.append(tag)
+        if tag == 'br':
+            self.result.append(' ')
 
     def handle_endtag(self, tag):
         if not self.tags:
@@ -142,7 +144,7 @@ def html_to_text(html_str: str) -> str:
         >>> html_to_text('<style>.span { color: red; }</style><span>Example</span>')
         'Example'
     """
-    html_str = html_str.replace('\n', ' ')
+    html_str = html_str.replace('\n', ' ').replace('\r', ' ')
     html_str = ' '.join(html_str.split())
     s = _HTMLTextExtractor()
     try:
@@ -370,7 +372,7 @@ def _get_lang_to_lc_dict(lang_list: List[str]) -> Dict[str, str]:
 
 # babel's get_global contains all sorts of miscellaneous locale and territory related data
 # see get_global in: https://github.com/python-babel/babel/blob/master/babel/core.py
-def _get_from_babel(lang_code: str, key: str):
+def _get_from_babel(lang_code: str, key):
     match = get_global(key).get(lang_code.replace('-', '_'))
     # for some keys, such as territory_aliases, match may be a list
     if isinstance(match, str):
@@ -462,7 +464,7 @@ def to_string(obj: Any) -> str:
     if isinstance(obj, str):
         return obj
     if hasattr(obj, '__str__'):
-        return obj.__str__()
+        return str(obj)
     return repr(obj)
 
 

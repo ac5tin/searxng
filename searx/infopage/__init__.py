@@ -29,7 +29,7 @@ import typing
 import urllib.parse
 import jinja2
 from flask.helpers import url_for
-import mistletoe
+from markdown_it import MarkdownIt
 
 from .. import get_setting
 from ..compat import cached_property
@@ -71,15 +71,17 @@ class InfoPage:
 
     @cached_property
     def html(self):
-        """Render Markdown (CommonMark_) to HTML by using mistletoe_.
+        """Render Markdown (CommonMark_) to HTML by using markdown-it-py_.
 
         .. _CommonMark: https://commonmark.org/
-        .. _mistletoe: https://github.com/miyuchina/mistletoe
+        .. _markdown-it-py: https://github.com/executablebooks/markdown-it-py
 
         """
-        return mistletoe.markdown(self.content)
+        return (
+            MarkdownIt("commonmark", {"typographer": True}).enable(["replacements", "smartquotes"]).render(self.content)
+        )
 
-    def get_ctx(self):  # pylint: disable=no-self-use
+    def get_ctx(self):
         """Jinja context to render :py:obj:`InfoPage.content`"""
 
         def _md_link(name, url):

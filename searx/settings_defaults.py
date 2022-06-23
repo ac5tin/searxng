@@ -18,7 +18,6 @@ searx_dir = abspath(dirname(__file__))
 logger = logging.getLogger('searx')
 OUTPUT_FORMATS = ['html', 'csv', 'json', 'rss']
 LANGUAGE_CODES = ['all'] + list(l[0] for l in languages)
-OSCAR_STYLE = ('logicodev', 'logicodev-dark', 'pointhi')
 SIMPLE_STYLE = ('auto', 'light', 'dark')
 CATEGORIES_AS_TABS = {
     'general': {},
@@ -141,6 +140,7 @@ SCHEMA = {
     'general': {
         'debug': SettingsValue(bool, False, 'SEARXNG_DEBUG'),
         'instance_name': SettingsValue(str, 'SearXNG'),
+        'privacypolicy_url': SettingsValue((None, False, str), None),
         'contact_url': SettingsValue((None, False, str), None),
         'enable_metrics': SettingsValue(bool, True),
     },
@@ -154,6 +154,7 @@ SCHEMA = {
     'search': {
         'safe_search': SettingsValue((0, 1, 2), 0),
         'autocomplete': SettingsValue(str, ''),
+        'autocomplete_min': SettingsValue(int, 4),
         'default_lang': SettingsValue(tuple(LANGUAGE_CODES + ['']), ''),
         'languages': SettingSublistValue(LANGUAGE_CODES, LANGUAGE_CODES),
         'ban_time_on_fail': SettingsValue(numbers.Real, 5),
@@ -181,9 +182,9 @@ SCHEMA = {
         'default_theme': SettingsValue(str, 'simple'),
         'default_locale': SettingsValue(str, ''),
         'theme_args': {
-            'oscar_style': SettingsValue(OSCAR_STYLE, 'logicodev'),
             'simple_style': SettingsValue(SIMPLE_STYLE, 'auto'),
         },
+        'center_aligment': SettingsValue(bool, False),
         'results_on_new_tab': SettingsValue(bool, False),
         'advanced_search': SettingsValue(bool, False),
         'query_in_title': SettingsValue(bool, False),

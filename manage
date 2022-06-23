@@ -30,7 +30,7 @@ GECKODRIVER_VERSION="v0.30.0"
 export NODE_MINIMUM_VERSION="16.13.0"
 # SPHINXOPTS=
 BLACK_OPTIONS=("--target-version" "py37" "--line-length" "120" "--skip-string-normalization")
-BLACK_TARGETS=("--exclude" "searx/static,searx/languages.py" "--include" "searxng.msg" "searx" "searxng_extra" "tests")
+BLACK_TARGETS=("--exclude" "searx/static,searx/languages.py" "--include" 'searxng.msg|\.pyi?$' "searx" "searxng_extra" "tests")
 
 pylint.FILES() {
 
@@ -115,7 +115,6 @@ test.:
   clean     : clean intermediate test stuff
 themes.:
   all       : build all themes
-  oscar     : build oscar theme
   simple    : build simple theme
 pygments.:
   less      : build LESS files for pygments
@@ -554,9 +553,6 @@ node.env() {
     nodejs.ensure
     (   set -e
 
-        build_msg INSTALL "searx/static/themes/oscar/package.json"
-        npm --prefix searx/static/themes/oscar install
-
         build_msg INSTALL "searx/static/themes/simple/package.json"
         npm --prefix searx/static/themes/simple install
     )
@@ -576,7 +572,6 @@ node.clean() {
     fi
     build_msg CLEAN "themes -- locally installed npm dependencies"
     (   set -e
-        npm --prefix searx/static/themes/oscar run clean
         npm --prefix searx/static/themes/simple run clean
     )
     dump_return $?
@@ -666,7 +661,8 @@ format.python() {
 
 test.yamllint() {
     build_msg TEST "[yamllint] \$YAMLLINT_FILES"
-    pyenv.cmd yamllint --format parsable "${YAMLLINT_FILES[@]}"
+    pyenv.cmd yamllint --strict --format parsable "${YAMLLINT_FILES[@]}"
+    dump_return $?
 }
 
 test.pylint() {
@@ -702,6 +698,7 @@ test.pyright() {
     pyenv.cmd npx --no-install pyright -p pyrightconfig-ci.json \
         | grep -v ".py$" \
         | grep -v '/engines/.*.py.* - warning: "logger" is not defined'\
+        | grep -v '/plugins/.*.py.* - error: "logger" is not defined'\
         | grep -v '/engines/.*.py.* - warning: "supported_languages" is not defined' \
         | grep -v '/engines/.*.py.* - warning: "language_aliases" is not defined'
     dump_return $?
@@ -744,6 +741,13 @@ test.rst() {
     done
 }
 
+test.pybabel() {
+    TEST_BABEL_FOLDER="build/test/pybabel"
+    build_msg TEST "[extract messages] pybabel"
+    mkdir -p "${TEST_BABEL_FOLDER}"
+    pyenv.cmd pybabel extract -F babel.cfg -o "${TEST_BABEL_FOLDER}/messages.pot" searx
+}
+
 test.clean() {
     build_msg CLEAN  "test stuff"
     rm -rf geckodriver.log .coverage coverage/
@@ -754,7 +758,6 @@ themes.all() {
     (   set -e
         pygments.less
         node.env
-        themes.oscar
         themes.simple
     )
     dump_return $?
@@ -763,14 +766,14 @@ themes.all() {
 themes.live() {
     local LIVE_THEME="${LIVE_THEME:-${1}}"
     case "${LIVE_THEME}" in
-        simple|oscar)
+        simple)
             theme="searx/static/themes/${LIVE_THEME}"
             ;;
         '')
             die_caller 42 "missing theme argument"
             ;;
         *)
-            die_caller 42 "unknown theme '${LIVE_THEME}' // [simple|oscar]'"
+            die_caller 42 "unknown theme '${LIVE_THEME}' // [simple]'"
             ;;
     esac
     build_msg GRUNT "theme: $1 (live build)"
@@ -782,12 +785,6 @@ themes.live() {
     } 2>&1 \
         | prefix_stdout "${_Blue}THEME ${1} ${_creset}  " \
         | grep -E --ignore-case --color 'error[s]?[:]? |warning[s]?[:]? |'
-}
-
-themes.oscar() {
-    build_msg GRUNT "theme: oscar"
-    npm --prefix searx/static/themes/oscar run build
-    dump_return $?
 }
 
 themes.simple() {
